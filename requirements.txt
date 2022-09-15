@@ -1,0 +1,5 @@
+importlib-resources==5.9.0
+pygame==2.1.2
+pygame-gui==0.6.4
+python-i18n==0.3.9
+zipp==3.8.1
