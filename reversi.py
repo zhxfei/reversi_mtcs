@@ -8,13 +8,11 @@
    Description :
 
 """
-import os
 import time
 import random
-
-import config
 from collections import namedtuple
 
+import config
 from ui import UI
 
 import pygame
@@ -25,6 +23,10 @@ Position = namedtuple('Position', ['x', 'y'])
 
 
 class StepIllegal(Exception):
+    pass
+
+
+class GameOverException(Exception):
     pass
 
 
@@ -84,7 +86,7 @@ class Broad:
                     pos = self.check_direction(row, col, inc_x, inc_y, next_player, other)
                     if pos:
                         res.append(pos)
-        return res
+        return list(set(res))
 
     def reverse_piece(self, step):
         row, col = step
@@ -122,6 +124,7 @@ class Broad:
         :return:
         """
         # check step valid
+        print("step:{} valid_step: {}".format(step, self.next_valid_steps))
         if step not in self.next_valid_steps:
             raise StepIllegal
 
@@ -142,6 +145,8 @@ class Broad:
         self.cur_player = self.get_counter(self.cur_player)
         self.next_valid_steps = self.get_next_valid_step()
         if len(self.next_valid_steps) == 0:
+            if self.game_ended():
+                raise GameOverException
             self.cur_player = self.get_counter(self.cur_player)
             self.next_valid_steps = self.get_next_valid_step()
 
@@ -221,21 +226,24 @@ class GameCenter:
 
         while self.gm_is_running:
             clock.tick(config.FPS)
-            #pygame.display.flip()
+            # pygame.display.flip()
             time.sleep(0.05)
-            # if self.board.game_ended():
-            #     whites, blacks, empty = self.board.count_pieces()
-            #     if whites > blacks:
-            #         winner = config.WHITE
-            #     elif blacks > whites:
-            #         winner = config.BLACK
-            #     break
+            if self.board.game_ended():
+                whites, blacks, empty = self.board.count_pieces()
+                if whites > blacks:
+                    winner = config.WHITE
+                elif blacks > whites:
+                    winner = config.BLACK
+                break
             if self.board.cur_player == config.BLACK:
                 step = self.ui.get_mouse_input(clock)
                 try:
                     self.board.move(step)
                 except StepIllegal:
                     print("illegal step {}".format(step))
+            whites, blacks, _ = self.board.count_pieces()
+            self.ui.update_score(blacks, whites)
+        self.ui.show_winner(winner)
 
 
 if __name__ == '__main__':

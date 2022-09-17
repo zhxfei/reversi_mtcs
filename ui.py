@@ -22,14 +22,13 @@ import pygame_gui
 class GameExitError(Exception):
     pass
 
-
 class UI:
     def __init__(self, game_center=None):
         self.broad = None
         self.gc = game_center
         self.window_surface = None
         self.ui_conf = {
-            "windows_size": (640, 480),
+            "windows_size": (800, 480),
             "caption": "ui caption",
 
         }
@@ -53,7 +52,7 @@ class UI:
         # self.BLACK_LAB_POS = (5, self.SCREEN_SIZE[1] / 4)
         # self.WHITE_LAB_POS = (560, self.SCREEN_SIZE[1] / 4)
         self.font = pygame.font.SysFont("Times New Roman", 22)
-        self.scoreFont = pygame.font.SysFont("Serif", 58)
+        self.scoreFont = pygame.font.SysFont("Serif", 20)
 
         # image files
         self.board_img = pygame.image.load(os.path.join(
@@ -70,6 +69,9 @@ class UI:
 
         self.manager = pygame_gui.UIManager(self.ui_conf['windows_size'])
         self.window_surface = pygame.display.set_mode(self.ui_conf['windows_size'])
+
+        #self.font = pygame.font.SysFont("Times New Roman", 22)
+        self.score_font = pygame.font.SysFont("Serif", 30)
 
         self.prepare()
 
@@ -92,6 +94,8 @@ class UI:
         self.put_piece((4, 4), config.WHITE)
         self.put_piece((3, 4), config.BLACK)
         self.put_piece((4, 3), config.BLACK)
+        self.show_score(2, 2)
+
 
     def put_piece(self, pos, color):
         """ draws piece with given position and color """
@@ -112,7 +116,6 @@ class UI:
         y = pos[1] * self.SQUARE_SIZE + self.BOARD[1]
 
         self.screen.blit(img, (x, y), img.get_rect())
-        pygame.display.flip()
 
     def get_mouse_input(self, clock):
         """ Get place clicked by mouse
@@ -143,3 +146,31 @@ class UI:
                     raise GameExitError
             pygame.display.update()
             time.sleep(.05)
+
+    def show_winner(self, player_color):
+        self.screen.fill(pygame.Color(0, 0, 0, 50))
+        font = pygame.font.SysFont("Courier New", 34)
+        if player_color == config.WHITE:
+            msg = font.render("White player wins", True, self.WHITE)
+        elif player_color == config.BLACK:
+            msg = font.render("Black player wins", True, self.WHITE)
+        else:
+            msg = font.render("Tie !", True, self.WHITE)
+        self.screen.blit(
+            msg, msg.get_rect(centerx=self.screen.get_width() / 2, centery=120))
+        pygame.display.flip()
+
+    def show_score(self, white, black):
+        black_text = self.score_font.render("Black: {}".format(black), True, (255, 0, 0), pygame.Color("#B7B7B7"))
+        white_text = self.score_font.render("White: {}".format(white), True, (255, 0, 0), pygame.Color("#B7B7B7"))
+        black_text_rect = black_text.get_rect()
+        white_text_rect = white_text.get_rect()
+        black_text_rect.topleft = (550, 20)
+        white_text_rect.topleft = (550, 60)
+
+        self.window_surface.blit(black_text, black_text_rect)
+        self.window_surface.blit(white_text, white_text_rect)
+
+
+    def update_score(self, white, black):
+        self.show_score(white, black)
