@@ -15,7 +15,7 @@ import logging
 import config
 
 import pygame
-import pygame_gui
+#import pygame_gui
 
 
 
@@ -67,7 +67,7 @@ class UI:
         # self.clear_img = pygame.image.load(os.path.join(config.IMAGES_DIR,
         #                                                 "nada.bmp")).convert()
 
-        self.manager = pygame_gui.UIManager(self.ui_conf['windows_size'])
+        #self.manager = pygame_gui.UIManager(self.ui_conf['windows_size'])
         self.window_surface = pygame.display.set_mode(self.ui_conf['windows_size'])
 
         #self.font = pygame.font.SysFont("Times New Roman", 22)
@@ -149,18 +149,34 @@ class UI:
 
     def show_winner(self, player_color):
         self.screen.fill(pygame.Color(0, 0, 0, 50))
-        font = pygame.font.SysFont("Courier New", 34)
+        win_font = pygame.font.SysFont("Courier New", 34)
+        restart_font = pygame.font.SysFont("Courier New", 34)
+        restart_msg = "Game Over and will restart in 5s!"
         if player_color == config.WHITE:
-            msg = font.render("White player wins", True, self.WHITE)
+            show_msg = "White player wins!"
         elif player_color == config.BLACK:
-            msg = font.render("Black player wins", True, self.WHITE)
+            show_msg = "Black player wins!"
         else:
-            msg = font.render("Tie !", True, self.WHITE)
+            show_msg = "No Winner!"
+        w_msg = win_font.render(show_msg, True, self.WHITE)
+        r_msg = restart_font.render(restart_msg, True, self.WHITE)
         self.screen.blit(
-            msg, msg.get_rect(centerx=self.screen.get_width() / 2, centery=120))
+            w_msg, w_msg.get_rect(centerx=self.screen.get_width() / 2, centery=120))
+        self.screen.blit(
+            r_msg, r_msg.get_rect(centerx=self.screen.get_width() / 2, centery=240))
         pygame.display.flip()
 
     def show_score(self, white, black):
+        black_text = self.score_font.render("".format(black), True, self.BACKGROUND, pygame.Color("#B7B7B7"))
+        white_text = self.score_font.render("".format(white), True, self.BACKGROUND, pygame.Color("#B7B7B7"))
+        black_text_rect = black_text.get_rect()
+        white_text_rect = white_text.get_rect()
+        black_text_rect.topleft = (550, 20)
+        white_text_rect.topleft = (550, 60)
+
+        self.window_surface.blit(black_text, black_text_rect)
+        self.window_surface.blit(white_text, white_text_rect)
+
         black_text = self.score_font.render("Black: {}".format(black), True, (255, 0, 0), pygame.Color("#B7B7B7"))
         white_text = self.score_font.render("White: {}".format(white), True, (255, 0, 0), pygame.Color("#B7B7B7"))
         black_text_rect = black_text.get_rect()
@@ -173,4 +189,5 @@ class UI:
 
 
     def update_score(self, white, black):
+        print("update score {} {}".format(white, black))
         self.show_score(white, black)

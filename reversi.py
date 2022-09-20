@@ -30,20 +30,28 @@ class GameOverException(Exception):
     pass
 
 
-class Broad:
-    def __init__(self, game_center=None):
+class Board:
+    def __init__(self, game_center):
+        """
+        通过gc来联系各个组件
+        :param game_center:
+        """
         self.board = None
         self.gc = game_center
-        self.cur_player = config.BLACK
+        self.cur_player = None
+        self.next_valid_steps = None
         self.init_broad()
-        self.next_valid_steps = self.get_next_valid_step()
 
     def init_broad(self):
+        # 初始化棋盘
         self.board = [[config.EMPTY] * 8 for _ in range(8)]
         self.board[3][3] = config.WHITE
         self.board[4][4] = config.WHITE
         self.board[3][4] = config.BLACK
         self.board[4][3] = config.BLACK
+        # 黑棋先手
+        self.cur_player = config.BLACK
+        self.next_valid_steps = self.get_next_valid_step(config.BLACK)
 
     def check_direction(self, row, column, row_add, column_add, next_player, other_color):
         """
@@ -117,47 +125,24 @@ class Broad:
         else:
             return config.BLACK
 
-    def move(self, step):
-        """
-        update broad, reverse
-        :param step:
-        :return:
-        """
-        # check step valid
-        print("step:{} valid_step: {}".format(step, self.next_valid_steps))
-        if step not in self.next_valid_steps:
-            raise StepIllegal
-
-        # put piece, cur_player same as the piece's color
-        self.board[step[0]][step[1]] = self.cur_player
-        self.gc.ui.put_piece(step, self.cur_player)
-
-        # revers pieces
-        reversed_lst = self.reverse_pieces(step)
-        for piece in reversed_lst:
-            self.gc.ui.put_piece(piece, self.cur_player)
-
-        print("user:{} step:{} reverse:{} valid_step:{}".format(self.cur_player, step, reversed_lst,
-                                                                self.next_valid_steps))
-        self.print_board()
-
-        # get next_valid_step, update player
-        self.cur_player = self.get_counter(self.cur_player)
-        self.next_valid_steps = self.get_next_valid_step()
-        if len(self.next_valid_steps) == 0:
-            if self.game_ended():
-                raise GameOverException
-            self.cur_player = self.get_counter(self.cur_player)
-            self.next_valid_steps = self.get_next_valid_step()
-
-        if self.cur_player == config.BLACK:
-            # return ui loop
-            return
-        else:
-            # next_step = self.mtcs.get_next_step(self)
-            # return self.move(self., next_step)
-            next_step = random.choice(self.next_valid_steps)
-            return self.move(next_step)
+        #
+        # # get next_valid_step, update player
+        # self.cur_player = self.get_counter(self.cur_player)
+        # self.next_valid_steps = self.get_next_valid_step()
+        # if len(self.next_valid_steps) == 0:
+        #     if self.game_ended():
+        #         raise GameOverException
+        #     self.cur_player = self.get_counter(self.cur_player)
+        #     self.next_valid_steps = self.get_next_valid_step()
+        #
+        # if self.cur_player == config.BLACK:
+        #     # return ui loop
+        #     return
+        # else:
+        #     # next_step = self.mtcs.get_next_step(self)
+        #     # return self.move(self., next_step)
+        #     next_step = random.choice(self.next_valid_steps)
+        #     return self.move(next_step)
 
     def __getitem__(self, i, j):
         return self.board[i][j]
@@ -177,9 +162,8 @@ class Broad:
         return False
 
     def count_pieces(self):
-        """ Returns the number of white pieces, black pieces and empty squares, in
-        this order.
-        """
+        """ 统计棋盘中棋子的数量 """
+        print("count start....")
         whites = 0
         blacks = 0
         empty = 0
@@ -191,9 +175,14 @@ class Broad:
                     blacks += 1
                 else:
                     empty += 1
+        print("count over: {} {} {}".format(whites, blacks, empty))
         return whites, blacks, empty
 
     def print_board(self):
+        """
+        打印棋盘
+        :return:
+        """
         for i in range(8):
             print(i, ' |', end=' ')
             for j in range(8):
@@ -207,11 +196,52 @@ class Broad:
             print()
 
 
+class Player(object):
+    def __init__(self, board, game_center):
+        assert isinstance(board, Board)
+        self.board = board
+        self.gc = game_center
+
+    def move(self, step):
+        raise NotImplementedError
+
+
+class HumanPlayer(Player):
+    def move(self, step):
+        """
+        选手走棋
+        :param step:
+        :return:
+        """
+        # check step valid
+        print("step:{} valid_step: {}".format(step, self.board.next_valid_steps))
+        if step not in self.board.next_valid_steps:
+            raise StepIllegal
+
+        # put piece, cur_player same as the piece's color
+        self.board.board[step[0]][step[1]] = self.board.cur_player
+        self.gc.ui.put_piece(step, self.board.cur_player)
+
+        # revers pieces
+        reversed_lst = self.board.reverse_pieces(step)
+        for piece in reversed_lst:
+            self.gc.ui.put_piece(piece, self.board.cur_player)
+
+        print("user:{} step:{} reverse:{} valid_step:{}".format(self.board.cur_player, step, reversed_lst,
+                                                                self.board.next_valid_steps))
+        self.board.print_board()
+
+
+
 class GameCenter:
     def __init__(self):
         pygame.init()
         self.ui = UI(game_center=self)
-        self.board = Broad(game_center=self)
+        self.board = Board(game_center=self)
+
+        # 初始化玩家
+        self.player = HumanPlayer(self.board, self)
+        self.mode = "player"
 
         self.gm_is_running = True
 
@@ -224,26 +254,46 @@ class GameCenter:
 
         winner = None
 
-        while self.gm_is_running:
+        while self.gm_is_running and not self.board.game_ended():
             clock.tick(config.FPS)
             # pygame.display.flip()
             time.sleep(0.05)
-            if self.board.game_ended():
-                whites, blacks, empty = self.board.count_pieces()
-                if whites > blacks:
-                    winner = config.WHITE
-                elif blacks > whites:
-                    winner = config.BLACK
-                break
             if self.board.cur_player == config.BLACK:
-                step = self.ui.get_mouse_input(clock)
-                try:
-                    self.board.move(step)
-                except StepIllegal:
-                    print("illegal step {}".format(step))
+                if self.mode == "player":
+                    step = self.ui.get_mouse_input(clock)
+                    try:
+                        self.player.move(step)
+                    except StepIllegal:
+                        print("illegal step {}".format(step))
+                        # todo: 调试
+                        # break
+                    except GameOverException:
+                        print("game over exception...")
+                        break
             whites, blacks, _ = self.board.count_pieces()
             self.ui.update_score(blacks, whites)
-        self.ui.show_winner(winner)
+
+        # game is not running...
+        if self.board.game_ended():
+            whites, blacks, empty = self.board.count_pieces()
+            if whites > blacks:
+                winner = config.WHITE
+            elif blacks > whites:
+                winner = config.BLACK
+            self.ui.show_winner(winner)
+        # restarting game
+        print("game is over, and it will restart in 5 seconds...")
+        time.sleep(5)
+        self.restart_game()
+
+    def restart_game(self):
+        """
+        重新开始游戏
+        :return:
+        """
+        self.board.init_broad()
+        self.ui.prepare()
+        return self.start_loop()
 
 
 if __name__ == '__main__':
