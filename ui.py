@@ -15,12 +15,11 @@ import logging
 import config
 
 import pygame
-#import pygame_gui
-
 
 
 class GameExitError(Exception):
     pass
+
 
 class UI:
     def __init__(self, game_center=None):
@@ -67,10 +66,10 @@ class UI:
         # self.clear_img = pygame.image.load(os.path.join(config.IMAGES_DIR,
         #                                                 "nada.bmp")).convert()
 
-        #self.manager = pygame_gui.UIManager(self.ui_conf['windows_size'])
+        # self.manager = pygame_gui.UIManager(self.ui_conf['windows_size'])
         self.window_surface = pygame.display.set_mode(self.ui_conf['windows_size'])
 
-        #self.font = pygame.font.SysFont("Times New Roman", 22)
+        # self.font = pygame.font.SysFont("Times New Roman", 22)
         self.score_font = pygame.font.SysFont("Serif", 30)
 
         self.prepare()
@@ -95,7 +94,6 @@ class UI:
         self.put_piece((3, 4), config.BLACK)
         self.put_piece((4, 3), config.BLACK)
         self.show_score(2, 2)
-
 
     def put_piece(self, pos, color):
         """ draws piece with given position and color """
@@ -186,7 +184,6 @@ class UI:
 
         self.window_surface.blit(black_text, black_text_rect)
         self.window_surface.blit(white_text, white_text_rect)
-
 
     def update_score(self, white, black):
         print("update score {} {}".format(white, black))

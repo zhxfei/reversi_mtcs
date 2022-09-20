@@ -8,3 +8,163 @@
    Description :
 
 """
+
+import config
+
+class Board:
+    def __init__(self, game_center):
+        """
+        通过gc来联系各个组件
+        :param game_center:
+        """
+        self.board = None
+        self.gc = game_center
+        self.cur_player = None
+        self.next_valid_steps = None
+        self.init_broad()
+
+    def init_broad(self):
+        # 初始化棋盘
+        self.board = [[config.EMPTY] * 8 for _ in range(8)]
+        self.board[3][3] = config.WHITE
+        self.board[4][4] = config.WHITE
+        self.board[3][4] = config.BLACK
+        self.board[4][3] = config.BLACK
+        # 黑棋先手
+        self.cur_player = config.BLACK
+        self.next_valid_steps = self.get_next_valid_step(config.BLACK)
+
+    def check_direction(self, row, column, row_add, column_add, next_player, other_color):
+        """
+        检查某个位置的某个方向是否可以落子
+        :param row:
+        :param column:
+        :param row_add:
+        :param column_add:
+        :param next_player:
+        :param other_color:
+        :return:
+        """
+
+        i = row + row_add
+        j = column + column_add
+        if 0 <= i <= 7 and 0 <= j <= 7 and self.board[i][j] == other_color:
+            i += row_add
+            j += column_add
+            while 0 <= i <= 7 and 0 <= j <= 7 and self.board[i][j] == other_color:
+                i += row_add
+                j += column_add
+            if 0 <= i <= 7 and 0 <= j <= 7 and self.board[i][j] == next_player:
+                return row, column
+
+    def get_next_valid_step(self, next_player=None):
+        """
+        获取下一步可能得步骤
+        :param next_player: 下一步谁走
+        :return:
+        """
+        if next_player is None:
+            next_player = self.cur_player
+        other = self.get_counter(next_player)
+        res = []
+        for row in range(8):
+            for col in range(8):
+                if self.board[row][col] != config.EMPTY:
+                    continue
+                for (inc_x, inc_y) in [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]:
+                    pos = self.check_direction(row, col, inc_x, inc_y, next_player, other)
+                    if pos:
+                        res.append(pos)
+        return list(set(res))
+
+    def update_next_valid_step(self):
+        """
+        每次选手走棋都需要更新
+        :return:
+        """
+        self.next_valid_steps = self.get_next_valid_step()
+
+    def reverse_piece(self, step):
+        row, col = step
+        if self.board[row][col] != config.EMPTY:
+            self.board[row][col] = config.BLACK if self.board[row][col] == config.WHITE else config.WHITE
+
+    def reverse_pieces(self, step, cur_player=None):
+        cur_player = cur_player or self.cur_player
+        other = self.get_counter(cur_player)
+        ops_pieces = []
+        row, col = step
+        for (inc_x, inc_y) in [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]:
+            pos = self.check_direction(row, col, inc_x, inc_y, cur_player, other)
+            if pos:
+                i = row + inc_x
+                j = col + inc_y
+                while self.board[i][j] != self.cur_player:
+                    self.reverse_piece((i, j))
+                    ops_pieces.append((i, j))
+                    i = i + inc_x
+                    j = j + inc_y
+        return ops_pieces
+
+    def get_counter(self, next_player):
+        next_player = next_player or self.cur_player
+        if next_player == config.BLACK:
+            return config.WHITE
+        else:
+            return config.BLACK
+
+    def __getitem__(self, i, j):
+        return self.board[i][j]
+
+    def game_ended(self):
+        """ Is the game ended? """
+        # board full or wipeout
+        whites, blacks, empty = self.count_pieces()
+        if whites == 0 or blacks == 0 or empty == 0:
+            return True
+
+        # no valid moves for both players
+        if self.get_next_valid_step(config.BLACK) == [] and \
+                self.get_next_valid_step(config.WHITE) == []:
+            return True
+
+        return False
+
+    def count_pieces(self):
+        """ 统计棋盘中棋子的数量 """
+        print("count start....")
+        whites = 0
+        blacks = 0
+        empty = 0
+        for i in range(8):
+            for j in range(8):
+                if self.board[i][j] == config.WHITE:
+                    whites += 1
+                elif self.board[i][j] == config.BLACK:
+                    blacks += 1
+                else:
+                    empty += 1
+        print("count over: {} {} {}".format(whites, blacks, empty))
+        return whites, blacks, empty
+
+    def print_board(self):
+        """
+        打印棋盘
+        :return:
+        """
+        for i in range(8):
+            print(i, ' |', end=' ')
+            for j in range(8):
+                if self.board[i][j] == config.BLACK:
+                    print('B', end=' ')
+                elif self.board[i][j] == config.WHITE:
+                    print('W', end=' ')
+                else:
+                    print(' ', end=' ')
+                print('|', end=' ')
+            print()
+
+    def switch_player(self):
+        self.cur_player = self.get_counter(self.cur_player)
+        self.update_next_valid_step()
+
