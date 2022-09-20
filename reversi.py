@@ -22,7 +22,7 @@ FPS = 60
 Position = namedtuple('Position', ['x', 'y'])
 
 
-class StepIllegal(Exception):
+class StepIllegalError(Exception):
     pass
 
 
@@ -96,6 +96,13 @@ class Board:
                         res.append(pos)
         return list(set(res))
 
+    def update_next_valid_step(self):
+        """
+        每次选手走棋都需要更新
+        :return:
+        """
+        self.next_valid_steps = self.get_next_valid_step()
+
     def reverse_piece(self, step):
         row, col = step
         if self.board[row][col] != config.EMPTY:
@@ -124,25 +131,6 @@ class Board:
             return config.WHITE
         else:
             return config.BLACK
-
-        #
-        # # get next_valid_step, update player
-        # self.cur_player = self.get_counter(self.cur_player)
-        # self.next_valid_steps = self.get_next_valid_step()
-        # if len(self.next_valid_steps) == 0:
-        #     if self.game_ended():
-        #         raise GameOverException
-        #     self.cur_player = self.get_counter(self.cur_player)
-        #     self.next_valid_steps = self.get_next_valid_step()
-        #
-        # if self.cur_player == config.BLACK:
-        #     # return ui loop
-        #     return
-        # else:
-        #     # next_step = self.mtcs.get_next_step(self)
-        #     # return self.move(self., next_step)
-        #     next_step = random.choice(self.next_valid_steps)
-        #     return self.move(next_step)
 
     def __getitem__(self, i, j):
         return self.board[i][j]
@@ -195,6 +183,10 @@ class Board:
                 print('|', end=' ')
             print()
 
+    def switch_player(self):
+        self.cur_player = self.get_counter(self.cur_player)
+        self.update_next_valid_step()
+
 
 class Player(object):
     def __init__(self, board, game_center):
@@ -202,21 +194,22 @@ class Player(object):
         self.board = board
         self.gc = game_center
 
-    def move(self, step):
+    def move(self, *args, **kwargs):
         raise NotImplementedError
 
 
 class HumanPlayer(Player):
-    def move(self, step):
+    def move(self, clock):
         """
-        选手走棋
-        :param step:
+        选手走棋, 从ui获取输入，更新棋盘
+        :param clock:
         :return:
         """
+        step = self.gc.ui.get_mouse_input(clock)
         # check step valid
         print("step:{} valid_step: {}".format(step, self.board.next_valid_steps))
         if step not in self.board.next_valid_steps:
-            raise StepIllegal
+            raise StepIllegalError
 
         # put piece, cur_player same as the piece's color
         self.board.board[step[0]][step[1]] = self.board.cur_player
@@ -230,7 +223,27 @@ class HumanPlayer(Player):
         print("user:{} step:{} reverse:{} valid_step:{}".format(self.board.cur_player, step, reversed_lst,
                                                                 self.board.next_valid_steps))
         self.board.print_board()
+        return step
 
+
+class RandomPlayer(Player):
+    def move(self):
+        """
+        随机move
+        :param step:
+        :return:
+        """
+        piece_color = self.board.cur_player
+        step = random.choice(self.board.next_valid_steps)
+        self.board.board[step[0]][step[1]] = piece_color
+        self.gc.ui.put_piece(step, piece_color)
+        reversed_lst = self.board.reverse_pieces(step)
+        for piece in reversed_lst:
+            self.gc.ui.put_piece(piece, self.board.cur_player)
+        print("user:{} step:{} reverse:{} valid_step:{}".format(self.board.cur_player, step, reversed_lst,
+                                                                self.board.next_valid_steps))
+        self.board.print_board()
+        return step
 
 
 class GameCenter:
@@ -240,10 +253,14 @@ class GameCenter:
         self.board = Board(game_center=self)
 
         # 初始化玩家
-        self.player = HumanPlayer(self.board, self)
-        self.mode = "player"
+        self.player_black = HumanPlayer(self.board, self)
+        self.player_white = RandomPlayer(self.board, self)
+        self.mode = "human_player"
 
         self.gm_is_running = True
+        self.board.cur_player = config.BLACK
+
+
 
     def start_loop(self):
         """
@@ -251,27 +268,28 @@ class GameCenter:
         :return:
         """
         clock = pygame.time.Clock()
-
         winner = None
-
         while self.gm_is_running and not self.board.game_ended():
             clock.tick(config.FPS)
-            # pygame.display.flip()
             time.sleep(0.05)
-            if self.board.cur_player == config.BLACK:
-                if self.mode == "player":
-                    step = self.ui.get_mouse_input(clock)
-                    try:
-                        self.player.move(step)
-                    except StepIllegal:
-                        print("illegal step {}".format(step))
-                        # todo: 调试
-                        # break
-                    except GameOverException:
-                        print("game over exception...")
-                        break
+            if len(self.board.next_valid_steps) == 0:
+                self.board.switch_player()
+            try:
+                if self.board.cur_player == config.BLACK:
+                    # if self.mode == "human_player":
+                    self.player_black.move(clock)
+                    self.board.switch_player()
+                else:
+                    self.player_white.move()
+                    self.board.switch_player()
+            except StepIllegalError:
+                print("illegal step")
+                # todo: 调试
+                # break
+
+            # 更新黑白棋统计
             whites, blacks, _ = self.board.count_pieces()
-            self.ui.update_score(blacks, whites)
+            self.ui.update_score(whites, blacks)
 
         # game is not running...
         if self.board.game_ended():
