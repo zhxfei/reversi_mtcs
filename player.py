@@ -11,6 +11,7 @@
 import random
 
 from board import Board
+from mtcs import uct_search, State
 
 
 class StepIllegalError(Exception):
@@ -22,6 +23,29 @@ class Player(object):
         assert isinstance(board, Board)
         self.board = board
         self.gc = game_center
+
+    def _move(self, step, piece_color):
+        """
+
+        :param step: 走棋的位置
+        :param piece_color: 走棋方
+        :return:
+        """
+        # put piece, cur_player same as the piece's color
+        self.board.board[step[0]][step[1]] = piece_color
+        self.gc.ui.put_piece(step, piece_color)
+
+        # revers pieces
+        reversed_lst = self.board.reverse_pieces(step)
+        for piece in reversed_lst:
+            self.gc.ui.put_piece(piece, piece_color)
+
+        # print to debug
+        print("user:{} step:{} reverse:{} valid_step:{}".format(
+            piece_color, step, reversed_lst,
+            self.board.next_valid_steps)
+        )
+        self.board.print_board()
 
     def move(self, *args, **kwargs):
         raise NotImplementedError
@@ -39,37 +63,33 @@ class HumanPlayer(Player):
         print("step:{} valid_step: {}".format(step, self.board.next_valid_steps))
         if step not in self.board.next_valid_steps:
             raise StepIllegalError
-
-        # put piece, cur_player same as the piece's color
-        self.board.board[step[0]][step[1]] = self.board.cur_player
-        self.gc.ui.put_piece(step, self.board.cur_player)
-
-        # revers pieces
-        reversed_lst = self.board.reverse_pieces(step)
-        for piece in reversed_lst:
-            self.gc.ui.put_piece(piece, self.board.cur_player)
-
-        print("user:{} step:{} reverse:{} valid_step:{}".format(self.board.cur_player, step, reversed_lst,
-                                                                self.board.next_valid_steps))
-        self.board.print_board()
+        self._move(step, self.board.cur_player)
         return step
 
 
 class RandomPlayer(Player):
     def move(self):
         """
-        随机move
+        随机走棋
         :param step:
         :return:
         """
         piece_color = self.board.cur_player
         step = random.choice(self.board.next_valid_steps)
-        self.board.board[step[0]][step[1]] = piece_color
-        self.gc.ui.put_piece(step, piece_color)
-        reversed_lst = self.board.reverse_pieces(step)
-        for piece in reversed_lst:
-            self.gc.ui.put_piece(piece, self.board.cur_player)
-        print("user:{} step:{} reverse:{} valid_step:{}".format(self.board.cur_player, step, reversed_lst,
-                                                                self.board.next_valid_steps))
-        self.board.print_board()
+        self._move(step, piece_color)
+        return step
+
+
+class MCTSPlayer(Player):
+
+    def move(self, *args, **kwargs):
+        """
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        piece_color = self.board.cur_player
+        state = State(board=self.board)
+        step = uct_search(state)
+        self._move(step, piece_color)
         return step

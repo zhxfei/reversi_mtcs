@@ -12,16 +12,17 @@
 import config
 
 class Board:
-    def __init__(self, game_center):
+    def __init__(self, *args, **kwargs):
         """
         通过gc来联系各个组件
         :param game_center:
         """
-        self.board = None
-        self.gc = game_center
-        self.cur_player = None
-        self.next_valid_steps = None
-        self.init_broad()
+        self.board = kwargs.get('board', None)
+        self.gc = kwargs.get('game_center', None)
+        self.next_valid_steps = kwargs.get('next_valid_steps', None)
+        self.cur_player = kwargs.get('cur_player', None)
+        if kwargs.get('init_board', True):
+            self.init_broad()
 
     def init_broad(self):
         # 初始化棋盘
@@ -132,7 +133,7 @@ class Board:
 
     def count_pieces(self):
         """ 统计棋盘中棋子的数量 """
-        print("count start....")
+        # print("count start....")
         whites = 0
         blacks = 0
         empty = 0
@@ -144,7 +145,7 @@ class Board:
                     blacks += 1
                 else:
                     empty += 1
-        print("count over: {} {} {}".format(whites, blacks, empty))
+        # print("count over: {} {} {}".format(whites, blacks, empty))
         return whites, blacks, empty
 
     def print_board(self):
@@ -168,3 +169,17 @@ class Board:
         self.cur_player = self.get_counter(self.cur_player)
         self.update_next_valid_step()
 
+
+    def get_winner(self):
+        """
+        获得棋盘的winner
+        :return:
+        """
+        whites, blacks, empty = self.count_pieces()
+        if whites > blacks:
+            winner = config.WHITE
+        elif blacks > whites:
+            winner = config.BLACK
+        else:
+            winner = None
+        return winner

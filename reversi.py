@@ -10,16 +10,12 @@
 """
 import time
 
+import pygame
+
 import config
 from ui import UI
 from board import Board
-from player import RandomPlayer, HumanPlayer, StepIllegalError
-
-import pygame
-
-
-class GameOverException(Exception):
-    pass
+from player import RandomPlayer, HumanPlayer, StepIllegalError, MCTSPlayer
 
 
 class GameCenter:
@@ -30,7 +26,7 @@ class GameCenter:
 
         # 初始化玩家
         self.player_black = HumanPlayer(self.board, self)
-        self.player_white = RandomPlayer(self.board, self)
+        self.player_white = MCTSPlayer(self.board, self)
         self.mode = "human_player"
 
         self.gm_is_running = True
@@ -67,16 +63,12 @@ class GameCenter:
 
         # game is not running...
         if self.board.game_ended():
-            whites, blacks, empty = self.board.count_pieces()
-            if whites > blacks:
-                winner = config.WHITE
-            elif blacks > whites:
-                winner = config.BLACK
+            winner = self.board.get_winner()
             self.ui.show_winner(winner)
         # restarting game
         print("game is over, and it will restart in 5 seconds...")
         time.sleep(5)
-        self.restart_game()
+        return self.restart_game()
 
     def restart_game(self):
         """
