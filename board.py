@@ -11,6 +11,7 @@
 
 import config
 
+
 class Board:
     def __init__(self, *args, **kwargs):
         """
@@ -91,7 +92,7 @@ class Board:
         if self.board[row][col] != config.EMPTY:
             self.board[row][col] = config.BLACK if self.board[row][col] == config.WHITE else config.WHITE
 
-    def reverse_pieces(self, step, cur_player=None):
+    def reverse_pieces(self, step, cur_player=None, do_reverse=True):
         cur_player = cur_player or self.cur_player
         other = self.get_counter(cur_player)
         ops_pieces = []
@@ -102,7 +103,8 @@ class Board:
                 i = row + inc_x
                 j = col + inc_y
                 while self.board[i][j] != self.cur_player:
-                    self.reverse_piece((i, j))
+                    if do_reverse:
+                        self.reverse_piece((i, j))
                     ops_pieces.append((i, j))
                     i = i + inc_x
                     j = j + inc_y
@@ -170,7 +172,6 @@ class Board:
         self.cur_player = self.get_counter(self.cur_player)
         self.update_next_valid_step()
 
-
     def get_winner(self):
         """
         获得棋盘的winner
@@ -184,3 +185,13 @@ class Board:
         else:
             winner = None
         return winner
+
+
+    def get_greedy_step(self):
+        max_num = -999
+        ret_step = None
+        for step in self.get_next_valid_step():
+            ops_pieces = list(set(self.reverse_pieces(step, do_reverse=False)))
+            if len(ops_pieces) >= max_num:
+                ret_step = step
+        return ret_step

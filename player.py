@@ -95,3 +95,19 @@ class MCTSPlayer(Player):
         step = uct_search(state)
         self._move(step, piece_color)
         return step
+
+
+class GreedyPlayer(Player):
+
+    def move(self, *args, **kwargs):
+        """
+        贪心走棋，每一次都找能翻转最多的棋子
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        piece_color = self.board.cur_player
+        step = self.board.get_greedy_step()
+        self._move(step, piece_color)
+        return step
+
