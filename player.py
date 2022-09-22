@@ -32,6 +32,7 @@ class Player(object):
         :return:
         """
         # put piece, cur_player same as the piece's color
+#        print()
         self.board.board[step[0]][step[1]] = piece_color
         self.gc.ui.put_piece(step, piece_color)
 

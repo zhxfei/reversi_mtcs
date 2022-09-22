@@ -10,18 +10,23 @@
 """
 import copy
 import math
+import time
 import random
+from functools import wraps
 
 from board import Board
 
-max_iter = 5
-CP = 0.1
+max_iter = 100
+CP = 1 / math.sqrt(2)
 
 
 class Node:
     def __init__(self, *args, **kwargs):
         """
+
+        :param args:
         :param kwargs:
+                state: 每个节点都对应一个棋盘，都有一个状态
         """
         # self.actions = kwargs['actions']
         self.state = kwargs['state']
@@ -30,6 +35,7 @@ class Node:
         self.parent = None
         self.children = set()
         self.child_expand_num = 0
+        self.valid_actions = self.state.board.get_next_valid_step()
 
     def set_child(self, node):
         """
@@ -45,7 +51,8 @@ class Node:
         所有的孩子都被扩展了
         :return:
         """
-        return len(self.state.board.get_next_valid_step()) - self.child_expand_num == 0
+        # print(self.state.board.get_next_valid_step(), "----", self.child_expand_num)
+        return len(self.valid_actions) == 0
 
 
 class State:
@@ -61,6 +68,7 @@ class State:
 
     def update_terminate_status(self):
         self.is_terminate = self.board.game_ended()
+        self.winner = self.board.get_winner() if self.is_terminate else None
 
 
 def uct_search(state):
@@ -68,18 +76,19 @@ def uct_search(state):
     :param state: 当前的状态
     :return: 玩家MAX行动下，当前最优动作a*
     """
+    st = time.time()
+
     cnt = 0
     # 根据当前的state创建一个root node
     rn = Node(state=state)
     while cnt < max_iter:
         vl = select_policy(rn)
-        if vl.state.is_terminate:
-            # direct select a leaf node with terminated status
-            break
         ts = simulate_policy(vl.state)
         back_propagate(vl, ts)
         cnt += 1
     best_node = ucb_calculate(rn, 0)
+
+    print("func:{}, Cost Time: {}".format(uct_search.__name__, time.time() - st))
     return best_node.state.step
 
 
@@ -89,27 +98,29 @@ def select_policy(rn):
     :param rn: root node
     :return: node
     """
-    v = rn
-    while not v.state.is_terminate:
-        if not v.all_children_expand():
-            return expand(v)
+    ret = rn
+    while not ret.state.is_terminate:
+        if not ret.all_children_expand():
+            return expand(ret)
         else:
-            v = ucb_calculate(v, CP)
-    return v
+            ret = ucb_calculate(ret, CP)
+    return ret
 
 
 def back_propagate(v, ts):
     """
-
+    反向传播更新reward和visit count
     :param v: 反向传播更新的起始节点
     :param ts: 终局的状态，根据其判断输赢方的分数
     :return:
     """
     winner = ts.board.get_winner()
+    delta = 1 if winner == v.state.board.cur_player else 0
+
     while v is not None:
         v.visit_cnt += 1
-        i = 1 if winner != ts.board.cur_player else -1
-        v.reward += i
+        v.reward += delta
+        # delta = -1 * delta
         v = v.parent
 
 
@@ -117,9 +128,11 @@ def expand(v):
     """
 
     :param v: 节点v
-    :return: 未被扩展的后继节点v'
+    :return: 未被扩展的后继节点child_node
     """
-    step = random.choice(v.state.board.next_valid_steps)
+    step = random.choice(v.valid_actions)
+    v.valid_actions.remove(step)
+
     ns = generate_new_state(v.state, step)
     child_node = Node(state=ns)
     v.set_child(child_node)
@@ -141,6 +154,7 @@ def ucb_calculate(node, c):
             2 * math.log(node.visit_cnt) / child.visit_cnt
         )
         if v >= max_v:
+            max_v = v
             ret_v = child
 
     return ret_v
@@ -170,7 +184,7 @@ def simulate_policy(s):
     :return: st: state terminate，模拟的终止状态
     """
     ts = copy.deepcopy(s)
-    print("start simulate...")
+    # print("start simulate...")
     while not ts.is_terminate:
         if not ts.board.next_valid_steps:
             ts.board.switch_player()
@@ -192,7 +206,7 @@ def copy_board(ob):
 
     return Board(
         game_center=None,
-        board=copy.copy(ob.board),
+        board=copy.deepcopy(ob.board),
         init_board=False,
         cur_player=ob.cur_player,
         next_valid_steps=ob.next_valid_steps

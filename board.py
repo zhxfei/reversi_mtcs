@@ -20,6 +20,7 @@ class Board:
         self.board = kwargs.get('board', None)
         self.gc = kwargs.get('game_center', None)
         self.next_valid_steps = kwargs.get('next_valid_steps', None)
+        # 即将落子的player
         self.cur_player = kwargs.get('cur_player', None)
         if kwargs.get('init_board', True):
             self.init_broad()
