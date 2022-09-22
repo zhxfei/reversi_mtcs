@@ -32,21 +32,22 @@ class Player(object):
         :return:
         """
         # put piece, cur_player same as the piece's color
-#        print()
         self.board.board[step[0]][step[1]] = piece_color
-        self.gc.ui.put_piece(step, piece_color)
-
         # revers pieces
         reversed_lst = self.board.reverse_pieces(step)
-        for piece in reversed_lst:
-            self.gc.ui.put_piece(piece, piece_color)
+
+        if self.gc is not None:
+            # update ui
+            self.gc.ui.put_piece(step, piece_color)
+            for piece in reversed_lst:
+                self.gc.ui.put_piece(piece, piece_color)
 
         # print to debug
-        print("user:{} step:{} reverse:{} valid_step:{}".format(
-            piece_color, step, reversed_lst,
-            self.board.next_valid_steps)
-        )
-        self.board.print_board()
+        # print("user:{} step:{} reverse:{} valid_step:{}".format(
+        #     piece_color, step, reversed_lst,
+        #     self.board.next_valid_steps)
+        # )
+        # self.board.print_board()
 
     def move(self, *args, **kwargs):
         raise NotImplementedError

@@ -88,7 +88,7 @@ def uct_search(state):
         cnt += 1
     best_node = ucb_calculate(rn, 0)
 
-    print("func:{}, Cost Time: {}".format(uct_search.__name__, time.time() - st))
+    # print("func:{}, Cost Time: {}".format(uct_search.__name__, time.time() - st))
     return best_node.state.step
 
 
@@ -103,25 +103,14 @@ def select_policy(rn):
         if not ret.all_children_expand():
             return expand(ret)
         else:
-            ret = ucb_calculate(ret, CP)
+            r = ucb_calculate(ret, CP)
+            if r == ret:
+                # 当前的棋盘无棋可走的时候
+                # return next_expand(ret)
+                break
+            ret = r
     return ret
 
-
-def back_propagate(v, ts):
-    """
-    反向传播更新reward和visit count
-    :param v: 反向传播更新的起始节点
-    :param ts: 终局的状态，根据其判断输赢方的分数
-    :return:
-    """
-    winner = ts.board.get_winner()
-    delta = 1 if winner == v.state.board.cur_player else 0
-
-    while v is not None:
-        v.visit_cnt += 1
-        v.reward += delta
-        # delta = -1 * delta
-        v = v.parent
 
 
 def expand(v):
@@ -147,7 +136,7 @@ def ucb_calculate(node, c):
     :return:
     """
     max_v = -999999999
-    ret_v = None
+    ret_v = node
 
     for child in node.children:
         v = child.reward / child.visit_cnt + c * math.sqrt(
@@ -156,7 +145,9 @@ def ucb_calculate(node, c):
         if v >= max_v:
             max_v = v
             ret_v = child
-
+    # if not ret_v:
+        # node.state.board.print_board()
+        # return node
     return ret_v
 
 
@@ -195,6 +186,23 @@ def simulate_policy(s):
         ts.board.switch_player()
         ts.update_terminate_status()
     return ts
+
+
+def back_propagate(v, ts):
+    """
+    反向传播更新reward和visit count
+    :param v: 反向传播更新的起始节点
+    :param ts: 终局的状态，根据其判断输赢方的分数
+    :return:
+    """
+    winner = ts.board.get_winner()
+    delta = 1 if winner == v.state.board.cur_player else 0
+
+    while v is not None:
+        v.visit_cnt += 1
+        v.reward += delta
+        # delta = -1 * delta
+        v = v.parent
 
 
 def copy_board(ob):

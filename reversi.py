@@ -80,6 +80,10 @@ class GameCenter:
         return self.start_loop()
 
 
-if __name__ == '__main__':
+def main():
     gc = GameCenter()
     gc.start_loop()
+
+
+if __name__ == '__main__':
+    main()
