@@ -196,12 +196,12 @@ def back_propagate(v, ts):
     :return:
     """
     winner = ts.board.get_winner()
-    delta = 1 if winner == v.state.board.cur_player else 0
+    delta = -1 if winner == v.state.board.cur_player else 1
 
     while v is not None:
         v.visit_cnt += 1
         v.reward += delta
-        # delta = -1 * delta
+        delta = -1 * delta
         v = v.parent
 
 
