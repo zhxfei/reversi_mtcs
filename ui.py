@@ -105,25 +105,28 @@ class UI:
         self.put_piece((3, 4), config.BLACK)
         self.put_piece((4, 3), config.BLACK)
         self.show_score(2, 2)
-    def put_remind_piece(self,pos):
-        if pos == None:
+
+    def put_remind_piece(self, pos):
+        if pos is None:
             return
         img = self.remind_img
         for z in pos:
             x = z[1] * self.SQUARE_SIZE + self.BOARD[0]
             y = z[0] * self.SQUARE_SIZE + self.BOARD[1]
             self.screen.blit(img, (x, y), img.get_rect())
-    def delete_put_remind_piece(self,pos):
-        if pos == None:
+
+    def delete_put_remind_piece(self, pos):
+        if pos is None:
             return
         img = self.delete_remind_img
         for z in pos:
             x = z[1] * self.SQUARE_SIZE + self.BOARD[0]
             y = z[0] * self.SQUARE_SIZE + self.BOARD[1]
             self.screen.blit(img, (x, y))
+
     def put_piece(self, pos, color):
         """ draws piece with given position and color """
-        if pos == None:
+        if pos is None:
             return
 
         # flip orientation (because xy screen orientation)
@@ -191,13 +194,13 @@ class UI:
         pygame.display.flip()
 
     def show_score(self, white, black):
-        black_text = self.score_font.render("".format(black), True,  pygame.Color("#B7B7B7"))
-        white_text = self.score_font.render("".format(white), True,  pygame.Color("#B7B7B7"))
+        black_text = self.score_font.render("".format(black), True, pygame.Color("#B7B7B7"))
+        white_text = self.score_font.render("".format(white), True, pygame.Color("#B7B7B7"))
         black_text_rect = black_text.get_rect()
         white_text_rect = white_text.get_rect()
         black_text_rect.topleft = (600, 20)
         white_text_rect.topleft = (600, 60)
-        self.window_surface.blit(self.tip1,(565,12))
+        self.window_surface.blit(self.tip1, (565, 12))
         self.window_surface.blit(black_text, black_text_rect)
         self.window_surface.blit(white_text, white_text_rect)
 
