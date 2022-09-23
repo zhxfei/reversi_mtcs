@@ -12,17 +12,18 @@ import copy
 import math
 import time
 import random
+import multiprocessing
 
 from board import Board
 
-max_iter = 100
+max_iter = 200
 CP = 1 / math.sqrt(2)
 
 
 class Node:
     def __init__(self, *args, **kwargs):
         """
-
+        蒙特卡洛树节点
         :param args:
         :param kwargs:
                 state: 每个节点都对应一个棋盘，都有一个状态
@@ -38,7 +39,7 @@ class Node:
 
     def set_child(self, node):
         """
-
+        设置孩子节点
         :param node:
         :return:
         """
@@ -47,10 +48,9 @@ class Node:
 
     def all_children_expand(self):
         """
-        所有的孩子都被扩展了
+        判断是否所有的孩子都被扩展了
         :return:
         """
-        # print(self.state.board.get_next_valid_step(), "----", self.child_expand_num)
         return len(self.valid_actions) == 0
 
 
@@ -66,6 +66,10 @@ class State:
         self.winner = self.board.get_winner() if self.is_terminate else None
 
     def update_terminate_status(self):
+        """
+        更新棋盘是否结束的标识
+        :return:
+        """
         self.is_terminate = self.board.game_ended()
         self.winner = self.board.get_winner() if self.is_terminate else None
 

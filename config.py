@@ -8,6 +8,8 @@
    Description :
 
 """
+import os
+
 FPS=60
 EMPTY = 0
 BLACK = 1
@@ -18,4 +20,5 @@ MIN = 1
 DEFAULT_LEVEL = 2
 HUMAN = "human"
 COMPUTER = "computer"
-IMAGES_DIR = "./resources/images"
+IMAGES_DIR = ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/resources/images"
+

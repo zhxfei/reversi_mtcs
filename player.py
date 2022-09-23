@@ -54,12 +54,13 @@ class Player(object):
 
 
 class HumanPlayer(Player):
-    def move(self, clock):
+    def move(self, *args, **kwargs):
         """
         选手走棋, 从ui获取输入，更新棋盘
         :param clock:
         :return:
         """
+        clock = args[0]
         step = self.gc.ui.get_mouse_input(clock)
         # check step valid
         print("step:{} valid_step: {}".format(step, self.board.next_valid_steps))
@@ -70,7 +71,7 @@ class HumanPlayer(Player):
 
 
 class RandomPlayer(Player):
-    def move(self):
+    def move(self, *args, **kwargs):
         """
         随机走棋
         :param step:

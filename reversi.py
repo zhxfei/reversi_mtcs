@@ -32,21 +32,20 @@ class GameCenter:
         self.gm_is_running = True
         self.board.cur_player = config.BLACK
 
-    def start_loop(self):
+    def start_loop(self, battle_wait=0.01):
         """
 
         :return:
         """
-        clock = pygame.time.Clock()
-        winner = None
+        clock = pygame.time.Clock() if self.mode == "human_player" else None
         while self.gm_is_running and not self.board.game_ended():
-            clock.tick(config.FPS)
-            time.sleep(0.05)
+            pygame.display.update()
+            if clock:  clock.tick(config.FPS)
+            time.sleep(battle_wait)
             if len(self.board.next_valid_steps) == 0:
                 self.board.switch_player()
             try:
                 if self.board.cur_player == config.BLACK:
-                    # if self.mode == "human_player":
                     self.player_black.move(clock)
                     self.board.switch_player()
                 else:
@@ -68,16 +67,16 @@ class GameCenter:
         # restarting game
         print("game is over, and it will restart in 5 seconds...")
         time.sleep(5)
-        return self.restart_game()
+        return self.restart_game(battle_wait)
 
-    def restart_game(self):
+    def restart_game(self, battle_wait):
         """
         重新开始游戏
         :return:
         """
         self.board.init_broad()
         self.ui.prepare()
-        return self.start_loop()
+        return self.start_loop(battle_wait)
 
 
 def main():
