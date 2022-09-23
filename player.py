@@ -8,6 +8,7 @@
    Description :
 
 """
+import time
 import random
 
 from board import Board
@@ -31,6 +32,9 @@ class Player(object):
         :param piece_color: 走棋方
         :return:
         """
+        if self.gc is not None:
+            self.gc.ui.delete_put_remind_piece(self.board.get_next_valid_step(self.board.cur_player))
+
         # put piece, cur_player same as the piece's color
         self.board.board[step[0]][step[1]] = piece_color
         # revers pieces
@@ -91,11 +95,13 @@ class MCTSPlayer(Player):
         :param kwargs:
         :return:
         """
+        t = time.time()
         piece_color = self.board.cur_player
         state = State(board=self.board)
         step = uct_search(state)
+        ret = round(time.time() - t, 2)
         self._move(step, piece_color)
-        return step
+        return ret
 
 
 class GreedyPlayer(Player):
@@ -111,4 +117,3 @@ class GreedyPlayer(Player):
         step = self.board.get_greedy_step()
         self._move(step, piece_color)
         return step
-

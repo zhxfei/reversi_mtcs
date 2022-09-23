@@ -27,7 +27,7 @@ class UI:
         self.gc = game_center
         self.window_surface = None
         self.ui_conf = {
-            "windows_size": (800, 480),
+            "windows_size": (800, 530),
             "caption": "ui caption",
 
         }
@@ -41,7 +41,7 @@ class UI:
 
         # display
         self.SCREEN_SIZE = (640, 480)
-        self.BOARD_POS = (100, 20)
+        self.BOARD_POS = (92, 14)
         self.BOARD = (120, 40)
         self.BOARD_SIZE = 400
         self.SQUARE_SIZE = 50
@@ -55,14 +55,21 @@ class UI:
 
         # image files
         self.board_img = pygame.image.load(os.path.join(
-            config.IMAGES_DIR, "board.bmp")).convert()
+            config.IMAGES_DIR, "board233.png")).convert()
         self.black_img = pygame.image.load(os.path.join(
-            config.IMAGES_DIR, "preta.bmp")).convert()
+            config.IMAGES_DIR, "black1.png")).convert()
         self.white_img = pygame.image.load(os.path.join(
-            config.IMAGES_DIR, "branca.bmp")).convert()
-
+            config.IMAGES_DIR, "white1.png")).convert()
+        self.remind_img = pygame.image.load(os.path.join(
+            config.IMAGES_DIR, "remind.png")).convert()
+        self.delete_remind_img = pygame.image.load(os.path.join(
+            config.IMAGES_DIR, "cover.png")).convert()
+        self.delete_remind_img1 = pygame.image.load(os.path.join(
+            config.IMAGES_DIR, "cover3.png")).convert()
+        self.tip1 = pygame.image.load(os.path.join(
+            config.IMAGES_DIR, "record.jpg")).convert()
         self.tip_img = pygame.image.load(os.path.join(config.IMAGES_DIR,
-                                                      "tip.bmp")).convert()
+                                                      "remind.png")).convert()
         # self.clear_img = pygame.image.load(os.path.join(config.IMAGES_DIR,
         #                                                 "nada.bmp")).convert()
 
@@ -85,16 +92,35 @@ class UI:
         # background.fill(pygame.Color('#B7B7B7'))
         self.window_surface.fill(pygame.Color("#B7B7B7"))
         board_img = pygame.image.load(os.path.join(
-            "./resources/images", "board.bmp"
+            config.IMAGES_DIR, "board233.png"
         )).convert_alpha()
-
+        background_img = pygame.image.load(os.path.join(
+            config.IMAGES_DIR, "background.png"
+        )).convert_alpha()
+        IMAGE_SMALL = pygame.transform.scale(background_img, (800, 580))
+        self.window_surface.blit(IMAGE_SMALL, (0, 0))
         self.window_surface.blit(board_img, self.BOARD_POS)
         self.put_piece((3, 3), config.WHITE)
         self.put_piece((4, 4), config.WHITE)
         self.put_piece((3, 4), config.BLACK)
         self.put_piece((4, 3), config.BLACK)
         self.show_score(2, 2)
-
+    def put_remind_piece(self,pos):
+        if pos == None:
+            return
+        img = self.remind_img
+        for z in pos:
+            x = z[1] * self.SQUARE_SIZE + self.BOARD[0]
+            y = z[0] * self.SQUARE_SIZE + self.BOARD[1]
+            self.screen.blit(img, (x, y), img.get_rect())
+    def delete_put_remind_piece(self,pos):
+        if pos == None:
+            return
+        img = self.delete_remind_img
+        for z in pos:
+            x = z[1] * self.SQUARE_SIZE + self.BOARD[0]
+            y = z[0] * self.SQUARE_SIZE + self.BOARD[1]
+            self.screen.blit(img, (x, y))
     def put_piece(self, pos, color):
         """ draws piece with given position and color """
         if pos == None:
@@ -165,22 +191,22 @@ class UI:
         pygame.display.flip()
 
     def show_score(self, white, black):
-        black_text = self.score_font.render("".format(black), True, self.BACKGROUND, pygame.Color("#B7B7B7"))
-        white_text = self.score_font.render("".format(white), True, self.BACKGROUND, pygame.Color("#B7B7B7"))
+        black_text = self.score_font.render("".format(black), True,  pygame.Color("#B7B7B7"))
+        white_text = self.score_font.render("".format(white), True,  pygame.Color("#B7B7B7"))
         black_text_rect = black_text.get_rect()
         white_text_rect = white_text.get_rect()
-        black_text_rect.topleft = (550, 20)
-        white_text_rect.topleft = (550, 60)
-
+        black_text_rect.topleft = (600, 20)
+        white_text_rect.topleft = (600, 60)
+        self.window_surface.blit(self.tip1,(565,12))
         self.window_surface.blit(black_text, black_text_rect)
         self.window_surface.blit(white_text, white_text_rect)
 
-        black_text = self.score_font.render("Black: {}".format(black), True, (255, 0, 0), pygame.Color("#B7B7B7"))
-        white_text = self.score_font.render("White: {}".format(white), True, (255, 0, 0), pygame.Color("#B7B7B7"))
+        black_text = self.score_font.render("Black: {}".format(black), True, (0, 0, 0))
+        white_text = self.score_font.render("White: {}".format(white), True, (255, 255, 255))
         black_text_rect = black_text.get_rect()
         white_text_rect = white_text.get_rect()
-        black_text_rect.topleft = (550, 20)
-        white_text_rect.topleft = (550, 60)
+        black_text_rect.topleft = (600, 20)
+        white_text_rect.topleft = (600, 60)
 
         self.window_surface.blit(black_text, black_text_rect)
         self.window_surface.blit(white_text, white_text_rect)

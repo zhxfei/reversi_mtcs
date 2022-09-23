@@ -46,10 +46,11 @@ class GameCenter:
                 self.board.switch_player()
             try:
                 if self.board.cur_player == config.BLACK:
+                    self.ui.put_remind_piece(self.board.get_next_valid_step(self.board.cur_player))
                     self.player_black.move(clock)
                     self.board.switch_player()
                 else:
-                    self.player_white.move()
+                    ret = self.player_white.move()
                     self.board.switch_player()
             except StepIllegalError:
                 print("illegal step")
