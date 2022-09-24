@@ -18,7 +18,7 @@ import config
 from board import Board
 
 CACHE_ON = 1
-MAX_VISIT_COUNT = 1000 * 1000
+MAX_VISIT_COUNT = 100
 
 
 class Node:
@@ -90,6 +90,8 @@ class Node:
         item_key = hash(state.board)
         if item_key in cls.node_cache:
             # key is exists in cache map, return old instance
+            print("key exists!")
+            state.board.print_board()
             return cls.node_cache[item_key], True
 
         # new instance
@@ -136,10 +138,10 @@ def uct_search(state, max_iter, cp):
     rn, _ = Node.from_cache(state=state)
 
     while cnt < max_iter:
-        vl = select_policy(rn, cp)
-        if vl.visit_cnt > MAX_VISIT_COUNT:
+        if rn.visit_cnt > MAX_VISIT_COUNT:
             # 当采样超过一定的数量后就不再采样
             break
+        vl = select_policy(rn, cp)
         ts = simulate_policy(vl.state)
         back_propagate(vl, ts)
         cnt += 1

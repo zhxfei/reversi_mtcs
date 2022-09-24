@@ -2,4 +2,5 @@
 .idea
 .git
 __pycache__/
-
+*.gv
+*.pdf

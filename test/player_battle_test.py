@@ -8,13 +8,16 @@
    Description :
 
 """
-import config
 import time
+import math
+import config
+import argparse
 
 from player import RandomPlayer, MCTSPlayer, GreedyPlayer
 from board import Board
 
 CNT = 1000
+CP = 1 / math.sqrt(2)
 
 
 def random_vs_random():
@@ -99,12 +102,35 @@ def random_vs_greedy():
             "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt, time.time() - start_time))
 
 
+def prepare_args():
+    description = '''Maximum number of iterations'''
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-m', '--max_iterate',
+                        required=False,
+                        default=100,
+                        dest='max_iterate',
+                        action='store',
+                        type=int,
+                        help='The larger the number of iterations, the more simulations are performed and the closer the simulated sampling results are to the true distribution, but the longer the time consumed')
+    parser.add_argument('-c', '--constant_factor',
+                        required=False,
+                        default=CP,
+                        dest='constant_factor',
+                        action='store',
+                        type=float,
+                        help='hyper parameter, constant factor to balance the experience and future expectation')
+    args = parser.parse_args()
+    return args
+
+
 def random_vs_mtcs_with_ui():
     from reversi import GameCenter
-    gc = GameCenter()
+    args = prepare_args()
+    args.max_iterate = 100
+    gc = GameCenter(args)
     gc.player_black = RandomPlayer(gc.board, gc)
     gc.mode = "random_player"
-    gc.start_loop(battle_wait=2)
+    gc.start_loop(battle_wait=0)
 
 
 # random_vs_random()
