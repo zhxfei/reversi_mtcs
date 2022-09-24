@@ -90,8 +90,8 @@ class Node:
         item_key = hash(state.board)
         if item_key in cls.node_cache:
             # key is exists in cache map, return old instance
-            print("key exists!")
-            state.board.print_board()
+            # print("key exists!")
+            # state.board.print_board()
             return cls.node_cache[item_key], True
 
         # new instance
