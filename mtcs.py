@@ -23,7 +23,7 @@ MAX_VISIT_COUNT = 100
 
 class Node:
     node_cache = dict()
-    cache_battle_layer = 5
+    cache_battle_layer = 10
 
     def __init__(self, *args, **kwargs):
         """
