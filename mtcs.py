@@ -101,7 +101,7 @@ def uct_search(state):
         back_propagate(vl, ts)
         cnt += 1
     best_node = ucb_calculate(rn, 0)
-    rn.dumps()
+    # rn.dumps()
     # print("func:{}, Cost Time: {}".format(uct_search.__name__, time.time() - st))
     return best_node.state.step
 

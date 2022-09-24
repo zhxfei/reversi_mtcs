@@ -23,3 +23,4 @@ COMPUTER = "computer"
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DIR = ROOT_DIR + "/test"
 IMAGES_DIR = ROOT_DIR + "/resources/images"
+SOUD_DIR = ROOT_DIR + "/resources/sounds"

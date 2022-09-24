@@ -3,7 +3,7 @@
 """
 
    File Name   :   reversi.py
-   author      :   zhuxiaofei22@mails.ucas.ac.cn
+   author      :   zhouhualin22@mails.ucas.ac.cn
    Date：      :   2022-09-14
    Description :
 
@@ -21,6 +21,8 @@ from player import RandomPlayer, HumanPlayer, StepIllegalError, MCTSPlayer
 class GameCenter:
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()
+
         self.ui = UI(game_center=self)
         self.board = Board(game_center=self)
 
@@ -39,6 +41,7 @@ class GameCenter:
 
         :return:
         """
+
         ret = 0
         self.ui.show_MCTS_time(ret)
         clock = pygame.time.Clock() if self.mode == "human_player" else None
@@ -53,9 +56,11 @@ class GameCenter:
                     self.ui.put_remind_piece(self.board.get_next_valid_step(self.board.cur_player))
                     self.player_black.move(clock)
                     self.board.switch_player()
+                    self.ui.music.play()
                 else:
                     ret = self.player_white.move()
                     self.board.switch_player()
+                    self.ui.music.play()
             except StepIllegalError:
                 print("illegal step")
                 # todo: 调试

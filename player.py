@@ -3,7 +3,7 @@
 """
 
    File Name   :   player.py
-   author      :   zhuxiaofei22@mails.ucas.ac.cn
+   author      :   zhouhualin22@mails.ucas.ac.cn
    Date：      :   2022-09-20
    Description :
 

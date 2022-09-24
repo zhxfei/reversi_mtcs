@@ -3,7 +3,7 @@
 """
 
    File Name   :   ui.py
-   author      :   zhuxiaofei22@mails.ucas.ac.cn
+   author      :   zhouhualin22@mails.ucas.ac.cn
    Date：      :   2022-09-17
    Description :
 
@@ -32,12 +32,6 @@ class UI:
 
         }
 
-        # colors
-        self.BLACK = (0, 0, 0)
-        self.BACKGROUND = (0, 0, 255)
-        self.WHITE = (255, 255, 255)
-        self.BLUE = (0, 0, 255)
-        self.YELLOW = (128, 128, 0)
 
         # display
         self.SCREEN_SIZE = (640, 480)
@@ -78,6 +72,7 @@ class UI:
 
         # self.font = pygame.font.SysFont("Times New Roman", 22)
         self.score_font = pygame.font.SysFont("Serif", 30)
+        self.music = pygame.mixer.Sound(config.SOUD_DIR + "/chess_voice.wav")
 
         self.prepare()
 
