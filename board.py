@@ -8,11 +8,14 @@
    Description :
 
 """
+from functools import reduce
 
 import config
 
 
 class Board:
+    direction_lst = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
+
     def __init__(self, *args, **kwargs):
         """
         通过gc来联系各个组件
@@ -40,11 +43,11 @@ class Board:
     def check_direction(self, row, column, row_add, column_add, next_player, other_color):
         """
         检查某个位置的某个方向是否可以落子
-        :param row:
-        :param column:
-        :param row_add:
-        :param column_add:
-        :param next_player:
+        :param row:  行
+        :param column: 列
+        :param row_add: 行增量
+        :param column_add: 列增量
+        :param next_player: 
         :param other_color:
         :return:
         """
@@ -74,7 +77,7 @@ class Board:
             for col in range(8):
                 if self.board[row][col] != config.EMPTY:
                     continue
-                for (inc_x, inc_y) in [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]:
+                for (inc_x, inc_y) in self.direction_lst:
                     pos = self.check_direction(row, col, inc_x, inc_y, next_player, other)
                     if pos:
                         res.append(pos)
@@ -88,16 +91,18 @@ class Board:
         self.next_valid_steps = self.get_next_valid_step()
 
     def reverse_piece(self, step):
+        """翻转一颗棋子"""
         row, col = step
         if self.board[row][col] != config.EMPTY:
             self.board[row][col] = config.BLACK if self.board[row][col] == config.WHITE else config.WHITE
 
     def reverse_pieces(self, step, cur_player=None, do_reverse=True):
+        """走棋时，找出所有的需要翻转的棋子"""
         cur_player = cur_player or self.cur_player
         other = self.get_counter(cur_player)
         ops_pieces = []
         row, col = step
-        for (inc_x, inc_y) in [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]:
+        for (inc_x, inc_y) in self.direction_lst:
             pos = self.check_direction(row, col, inc_x, inc_y, cur_player, other)
             if pos:
                 i = row + inc_x
@@ -117,12 +122,8 @@ class Board:
         else:
             return config.BLACK
 
-    def __getitem__(self, i, j):
-        return self.board[i][j]
-
     def game_ended(self):
-        """ Is the game ended? """
-        # board full or wipeout
+        """检测棋盘是否结束"""
         whites, blacks, empty = self.count_pieces()
         if whites == 0 or blacks == 0 or empty == 0:
             return True
@@ -194,3 +195,23 @@ class Board:
             if len(ops_pieces) >= max_num:
                 ret_step = step
         return ret_step
+
+    def count_level(self):
+        """
+        统计从开始游戏到现在共经历的多少步
+        :return:
+        """
+        whites, blacks, _ = self.count_pieces()
+        return whites + blacks - 4
+
+    def __getitem__(self, i, j):
+        return self.board[i][j]
+
+    def __hash__(self):
+        """
+        生成 cache map key
+        :return:
+        """
+        s = reduce(lambda x, y: x + y, [str(item) for row in self.board for item in row])
+        s += str(self.cur_player)
+        return hash(s)

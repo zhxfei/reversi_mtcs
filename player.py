@@ -63,7 +63,7 @@ class Player(object):
 class HumanPlayer(Player):
     def move(self, *args, **kwargs):
         """
-        选手走棋, 从ui获取输入，更新棋盘
+        人类选手走棋, 从ui获取输入，更新棋盘
         :param clock:
         :return:
         """
@@ -101,7 +101,7 @@ class MCTSPlayer(Player):
         t = time.time()
         piece_color = self.board.cur_player
         state = State(board=self.board)
-        step = uct_search(state)
+        step = uct_search(state, self.gc.args.max_iterate, self.gc.args.constant_factor)
         ret = round(time.time() - t, 2)
         self._move(step, piece_color)
         return ret

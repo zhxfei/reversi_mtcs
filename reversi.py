@@ -8,18 +8,25 @@
    Description :
 
 """
+import sys
 import time
+import math
+import traceback
+import argparse
 
 import pygame
 
 import config
-from ui import UI
+from ui import UI, GameExitError
 from board import Board
-from player import RandomPlayer, HumanPlayer, StepIllegalError, MCTSPlayer
+from player import HumanPlayer, StepIllegalError, MCTSPlayer
+
+CP = 1 / math.sqrt(2)
+EXIT_CODE = 2
 
 
 class GameCenter:
-    def __init__(self):
+    def __init__(self, args):
         pygame.init()
         pygame.mixer.init()
 
@@ -35,12 +42,15 @@ class GameCenter:
         self.board.cur_player = config.BLACK
         self.battle_wait = 0.001
         self.reverse_wait = 0
+        self.args = args
 
     def start_loop(self, battle_wait=0.01):
         """
 
         :return:
         """
+        from mtcs import Node
+        Node.init_cache_map()
 
         ret = 0
         self.ui.show_MCTS_time(ret)
@@ -61,10 +71,14 @@ class GameCenter:
                     ret = self.player_white.move()
                     self.board.switch_player()
                     self.ui.music.play()
-            except StepIllegalError:
-                print("illegal step")
+            except StepIllegalError as e:
+                traceback.print_exc()
                 # todo: 调试
-                # break
+
+            except GameExitError:
+                Node.save_cache_map()
+                print("save cache map success! game will exit")
+                sys.exit(EXIT_CODE)
 
             # 更新黑白棋统计
             whites, blacks, _ = self.board.count_pieces()
@@ -75,9 +89,11 @@ class GameCenter:
         if self.board.game_ended():
             winner = self.board.get_winner()
             self.ui.show_winner(winner)
+
         # restarting game
         print("game is over, and it will restart in 5 seconds...")
-        time.sleep(5)
+        Node.save_cache_map()
+        time.sleep(4)
         return self.restart_game(battle_wait)
 
     def restart_game(self, battle_wait):
@@ -90,8 +106,30 @@ class GameCenter:
         return self.start_loop(battle_wait)
 
 
+def prepare_args():
+    description = '''Maximum number of iterations'''
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-m', '--max_iterate',
+                        required=False,
+                        default=100,
+                        dest='max_iterate',
+                        action='store',
+                        type=int,
+                        help='The larger the number of iterations, the more simulations are performed and the closer the simulated sampling results are to the true distribution, but the longer the time consumed')
+    parser.add_argument('-c', '--constant_factor',
+                        required=False,
+                        default=CP,
+                        dest='constant_factor',
+                        action='store',
+                        type=float,
+                        help='hyper parameter, constant factor to balance the experience and future expectation')
+    args = parser.parse_args()
+    return args
+
+
 def main():
-    gc = GameCenter()
+    args = prepare_args()
+    gc = GameCenter(args)
     gc.start_loop()
 
 

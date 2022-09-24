@@ -12,9 +12,9 @@ import os
 import time
 import logging
 
-import config
-
 import pygame
+
+import config
 
 
 class GameExitError(Exception):
@@ -32,7 +32,7 @@ class UI:
 
         }
 
-
+        self.WHITE = (255, 255, 255)
         # display
         self.SCREEN_SIZE = (640, 480)
         self.BOARD_POS = (92, 14)
@@ -72,7 +72,7 @@ class UI:
 
         # self.font = pygame.font.SysFont("Times New Roman", 22)
         self.score_font = pygame.font.SysFont("Serif", 30)
-        self.music = pygame.mixer.Sound(config.SOUD_DIR + "/chess_voice.wav")
+        self.music = pygame.mixer.Sound(config.SOUND_DIR + "/chess_voice.wav")
 
         self.prepare()
 

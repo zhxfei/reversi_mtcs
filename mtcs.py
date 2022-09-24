@@ -8,20 +8,23 @@
    Description :
 
 """
+import os
 import copy
 import math
-import time
 import random
 import pickle
 
+import config
 from board import Board
 
-max_iter = 200
-CP = 1 / math.sqrt(2)
-file_path = "./nodes.pickle"
+CACHE_ON = 1
+MAX_VISIT_COUNT = 1000 * 1000
 
 
 class Node:
+    node_cache = dict()
+    cache_battle_layer = 5
+
     def __init__(self, *args, **kwargs):
         """
         蒙特卡洛树节点
@@ -54,13 +57,49 @@ class Node:
         """
         return len(self.valid_actions) == 0
 
-    def dumps(self):
-        with open(file_path, 'wb') as f:
-            pickle.dump(self, f)
+    @classmethod
+    def init_cache_map(cls):
+        if not cls.node_cache and os.path.exists(config.CACHE_FILE_PATH):
+            # every time when game start up, should init cache map
+            cls.node_cache = cls.loads(config.CACHE_FILE_PATH)
+
+    @classmethod
+    def save_cache_map(cls):
+        if not cls.node_cache:
+            # node cache is empty
+            return
+
+        with open(config.CACHE_FILE_PATH, 'wb') as f:
+            pickle.dump(cls.node_cache, f)
+
+    @classmethod
+    def from_cache(cls, *args, **kwargs):
+        """
+
+        :param args:
+        :param kwargs:
+        :return: return a tuple, instance and whether the item come from the cache
+        """
+        state = kwargs['state']
+        battle_num = state.board.count_level()
+        if battle_num > cls.cache_battle_layer or not CACHE_ON:
+            # 当玩家走棋次数超过一定数量就不做缓存，当对局到后面做蒙特卡洛树实时构建的深度也不是很高
+            # 对局次数越少，越有共性，对局次数越多，构建越快
+            return cls(*args, **kwargs), False
+
+        item_key = hash(state.board)
+        if item_key in cls.node_cache:
+            # key is exists in cache map, return old instance
+            return cls.node_cache[item_key], True
+
+        # new instance
+        ins = cls(*args, **kwargs)
+        cls.node_cache[item_key] = ins
+        return ins, False
 
     @staticmethod
-    def loads(path=file_path):
-        with open(path, 'rb') as f:
+    def loads(file_path):
+        with open(file_path, 'rb') as f:
             ret = pickle.load(f)
         return ret
 
@@ -85,45 +124,48 @@ class State:
         self.winner = self.board.get_winner() if self.is_terminate else None
 
 
-def uct_search(state):
+def uct_search(state, max_iter, cp):
     """
     :param state: 当前的状态
+    :param max_iter: 最大迭代次数
+    :param cp: 常数因子，超参数
     :return: 玩家MAX行动下，当前最优动作a*
     """
-    st = time.time()
-
     cnt = 0
     # 根据当前的state创建一个root node
-    rn = Node(state=state)
+    rn, _ = Node.from_cache(state=state)
+
     while cnt < max_iter:
-        vl = select_policy(rn)
+        vl = select_policy(rn, cp)
+        if vl.visit_cnt > MAX_VISIT_COUNT:
+            # 当采样超过一定的数量后就不再采样
+            break
         ts = simulate_policy(vl.state)
         back_propagate(vl, ts)
         cnt += 1
+
     best_node = ucb_calculate(rn, 0)
-    # rn.dumps()
-    # print("func:{}, Cost Time: {}".format(uct_search.__name__, time.time() - st))
     return best_node.state.step
 
 
-def select_policy(rn):
+def select_policy(root_node, cp):
     """
 
-    :param rn: root node
+    :param root_node:
+    :param cp: 超参数
     :return: node
     """
-    ret = rn
-    while not ret.state.is_terminate:
-        if not ret.all_children_expand():
-            return expand(ret)
+    ret_node = root_node
+    while not ret_node.state.is_terminate:
+        if not ret_node.all_children_expand():
+            return expand(ret_node)
         else:
-            r = ucb_calculate(ret, CP)
-            if r == ret:
+            r = ucb_calculate(ret_node, cp)
+            if r == ret_node:
                 # 当前的棋盘无棋可走的时候
-                # return next_expand(ret)
                 break
-            ret = r
-    return ret
+            ret_node = r
+    return ret_node
 
 
 def expand(v):
@@ -143,12 +185,12 @@ def expand(v):
 
 def ucb_calculate(node, c):
     """
-    计算ucb
+    根据ucb算法计算最优的节点
     :param node: 节点v
-    :param c: 超参数c
+    :param c: 超参数c, default: 1/math.sqrt(2)
     :return:
     """
-    max_v = -999999999
+    max_v = -1 * config.INFINITY
     ret_v = node
 
     for child in node.children:
@@ -158,9 +200,6 @@ def ucb_calculate(node, c):
         if v >= max_v:
             max_v = v
             ret_v = child
-    # if not ret_v:
-    # node.state.board.print_board()
-    # return node
     return ret_v
 
 
@@ -188,7 +227,6 @@ def simulate_policy(s):
     :return: st: state terminate，模拟的终止状态
     """
     ts = copy.deepcopy(s)
-    # print("start simulate...")
     while not ts.is_terminate:
         if not ts.board.next_valid_steps:
             ts.board.switch_player()
@@ -222,7 +260,7 @@ def back_propagate(v, ts):
 
 def copy_board(ob):
     """
-
+    拷贝棋盘，用新棋盘模拟
     :param ob:
     :return:
     """
