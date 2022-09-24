@@ -12,12 +12,13 @@ import copy
 import math
 import time
 import random
-import multiprocessing
+import pickle
 
 from board import Board
 
 max_iter = 200
 CP = 1 / math.sqrt(2)
+file_path = "./nodes.pickle"
 
 
 class Node:
@@ -52,6 +53,16 @@ class Node:
         :return:
         """
         return len(self.valid_actions) == 0
+
+    def dumps(self):
+        with open(file_path, 'wb') as f:
+            pickle.dump(self, f)
+
+    @staticmethod
+    def loads(path=file_path):
+        with open(path, 'rb') as f:
+            ret = pickle.load(f)
+        return ret
 
 
 class State:
@@ -90,7 +101,7 @@ def uct_search(state):
         back_propagate(vl, ts)
         cnt += 1
     best_node = ucb_calculate(rn, 0)
-
+    rn.dumps()
     # print("func:{}, Cost Time: {}".format(uct_search.__name__, time.time() - st))
     return best_node.state.step
 
@@ -113,7 +124,6 @@ def select_policy(rn):
                 break
             ret = r
     return ret
-
 
 
 def expand(v):
@@ -149,8 +159,8 @@ def ucb_calculate(node, c):
             max_v = v
             ret_v = child
     # if not ret_v:
-        # node.state.board.print_board()
-        # return node
+    # node.state.board.print_board()
+    # return node
     return ret_v
 
 

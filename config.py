@@ -10,7 +10,7 @@
 """
 import os
 
-FPS=60
+FPS = 60
 EMPTY = 0
 BLACK = 1
 WHITE = 2
@@ -20,5 +20,6 @@ MIN = 1
 DEFAULT_LEVEL = 2
 HUMAN = "human"
 COMPUTER = "computer"
-IMAGES_DIR = ROOT_DIR = os.path.dirname(os.path.abspath(__file__)) + "/resources/images"
-
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_DIR = ROOT_DIR + "/test"
+IMAGES_DIR = ROOT_DIR + "/resources/images"

@@ -31,12 +31,16 @@ class GameCenter:
 
         self.gm_is_running = True
         self.board.cur_player = config.BLACK
+        self.battle_wait = 0.001
+        self.reverse_wait = 0
 
     def start_loop(self, battle_wait=0.01):
         """
 
         :return:
         """
+        ret = 0
+        self.ui.show_MCTS_time(ret)
         clock = pygame.time.Clock() if self.mode == "human_player" else None
         while self.gm_is_running and not self.board.game_ended():
             pygame.display.update()
@@ -60,6 +64,7 @@ class GameCenter:
             # 更新黑白棋统计
             whites, blacks, _ = self.board.count_pieces()
             self.ui.update_score(whites, blacks)
+            self.ui.show_MCTS_time(ret)
 
         # game is not running...
         if self.board.game_ended():

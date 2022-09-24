@@ -186,7 +186,6 @@ class Board:
             winner = None
         return winner
 
-
     def get_greedy_step(self):
         max_num = -999
         ret_step = None

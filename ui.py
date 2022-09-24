@@ -27,7 +27,7 @@ class UI:
         self.gc = game_center
         self.window_surface = None
         self.ui_conf = {
-            "windows_size": (800, 530),
+            "windows_size": (800, 480),
             "caption": "ui caption",
 
         }
@@ -198,8 +198,8 @@ class UI:
         white_text = self.score_font.render("".format(white), True, pygame.Color("#B7B7B7"))
         black_text_rect = black_text.get_rect()
         white_text_rect = white_text.get_rect()
-        black_text_rect.topleft = (600, 20)
-        white_text_rect.topleft = (600, 60)
+        black_text_rect.topleft = (600, 40)
+        white_text_rect.topleft = (600, 80)
         self.window_surface.blit(self.tip1, (565, 12))
         self.window_surface.blit(black_text, black_text_rect)
         self.window_surface.blit(white_text, white_text_rect)
@@ -208,12 +208,25 @@ class UI:
         white_text = self.score_font.render("White: {}".format(white), True, (255, 255, 255))
         black_text_rect = black_text.get_rect()
         white_text_rect = white_text.get_rect()
-        black_text_rect.topleft = (600, 20)
-        white_text_rect.topleft = (600, 60)
+        black_text_rect.topleft = (600, 40)
+        white_text_rect.topleft = (600, 80)
 
         self.window_surface.blit(black_text, black_text_rect)
         self.window_surface.blit(white_text, white_text_rect)
 
     def update_score(self, white, black):
-        print("update score {} {}".format(white, black))
+        # print("update score {} {}".format(white, black))
         self.show_score(white, black)
+
+    def show_MCTS_time(self, ret_time):
+        mcts_time = ret_time
+        time_text = self.score_font.render("".format(mcts_time), True, pygame.Color("#B7B7B7"))
+        time_text_rect = time_text.get_rect()
+        time_text_rect.topleft = (605, 180)
+        self.window_surface.blit(self.tip1, (565, 150))
+        time_text = self.score_font.render("time: {}s".format(mcts_time), True, (0, 0, 0))
+        time_text_rect = time_text.get_rect()
+        time_text_rect.topleft = (605, 180)
+        self.window_surface.blit(time_text, time_text_rect)
+        #print(mcts_time)
+        #print("a")

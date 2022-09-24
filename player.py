@@ -10,6 +10,7 @@
 """
 import time
 import random
+import pygame
 
 from board import Board
 from mtcs import uct_search, State
@@ -43,6 +44,8 @@ class Player(object):
         if self.gc is not None:
             # update ui
             self.gc.ui.put_piece(step, piece_color)
+            pygame.display.update()
+            time.sleep(self.gc.reverse_wait)
             for piece in reversed_lst:
                 self.gc.ui.put_piece(piece, piece_color)
 
