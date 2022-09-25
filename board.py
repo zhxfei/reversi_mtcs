@@ -207,11 +207,11 @@ class Board:
     def __getitem__(self, i, j):
         return self.board[i][j]
 
-    def __hash__(self):
+    def generate_map_key(self):
         """
         生成 cache map key
         :return:
         """
         s = reduce(lambda x, y: x + y, [str(item) for row in self.board for item in row])
         s += str(self.cur_player)
-        return hash(s)
+        return s

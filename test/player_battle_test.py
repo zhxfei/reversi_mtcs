@@ -8,17 +8,24 @@
    Description :
 
 """
+
+import sys
 import time
 import math
-import config
+import traceback
 import argparse
 
-from player import RandomPlayer, MCTSPlayer, GreedyPlayer
+import pygame
+
+import config
+from ui import UI, GameExitError
 from board import Board
+from player import RandomPlayer, StepIllegalError, MCTSPlayer, GreedyPlayer
 
 CNT = 1000
 CP = 1 / math.sqrt(2)
-
+EXIT_CODE = 2
+restart_wait = 0.1
 
 def random_vs_random():
     no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
@@ -123,17 +130,95 @@ def prepare_args():
     return args
 
 
-def random_vs_mtcs_with_ui():
-    from reversi import GameCenter
+class GameCenter:
+    def __init__(self, args):
+        pygame.init()
+        pygame.mixer.init()
+
+        self.ui = UI(game_center=self)
+        self.board = Board(game_center=self)
+
+        # 初始化玩家
+        self.player_black = RandomPlayer(self.board, self)
+        self.player_white = MCTSPlayer(self.board, self)
+        self.mode = "human_player"
+
+        self.gm_is_running = True
+        self.board.cur_player = config.BLACK
+        self.battle_wait = 0.001
+        self.reverse_wait = 0.001
+        self.args = args
+
+    def start_loop(self, battle_wait=0.01):
+        """
+
+        :return:
+        """
+        from mtcs import Node
+        Node.init_cache_map()
+
+        ret = 0
+        self.ui.show_MCTS_time(ret)
+        clock = pygame.time.Clock() if self.mode == "human_player" else None
+        while self.gm_is_running and not self.board.game_ended():
+            pygame.display.update()
+            if clock:  clock.tick(config.FPS)
+            time.sleep(battle_wait)
+            if len(self.board.next_valid_steps) == 0:
+                self.board.switch_player()
+            try:
+                if self.board.cur_player == config.BLACK:
+                    self.ui.put_remind_piece(self.board.get_next_valid_step(self.board.cur_player))
+                    self.player_black.move(clock)
+                    self.board.switch_player()
+                    self.ui.music.play()
+                else:
+                    ret = self.player_white.move()
+                    self.board.switch_player()
+                    self.ui.music.play()
+            except StepIllegalError as e:
+                traceback.print_exc()
+                # todo: 调试
+
+            except GameExitError:
+                Node.save_cache_map()
+                print("save cache map success! game will exit")
+                sys.exit(EXIT_CODE)
+
+            # 更新黑白棋统计
+            whites, blacks, _ = self.board.count_pieces()
+            self.ui.update_score(whites, blacks)
+            self.ui.show_MCTS_time(ret)
+
+        # game is not running...
+        if self.board.game_ended():
+            winner = self.board.get_winner()
+            self.ui.show_winner(winner)
+
+        # restarting game
+        print("game is over, and it will restart in 5 seconds...")
+        Node.save_cache_map()
+        time.sleep(restart_wait)
+        return self.restart_game(battle_wait)
+
+    def restart_game(self, battle_wait):
+        """
+        重新开始游戏
+        :return:
+        """
+        self.board.init_broad()
+        self.ui.prepare()
+        return self.start_loop(battle_wait)
+
+
+def random_vs_mtcs_with_ui_main():
     args = prepare_args()
-    args.max_iterate = 100
     gc = GameCenter(args)
-    gc.player_black = RandomPlayer(gc.board, gc)
-    gc.mode = "random_player"
-    gc.start_loop(battle_wait=0)
+    gc.start_loop()
 
 
-# random_vs_random()
-random_vs_mtcs_with_ui()
+if __name__ == '__main__':
+    # random_vs_random()
+    random_vs_mtcs_with_ui_main()
 
-# random_vs_greedy()
+    # random_vs_greedy()

@@ -87,7 +87,7 @@ class Node:
             # 对局次数越少，越有共性，对局次数越多，构建越快
             return cls(*args, **kwargs), False
 
-        item_key = hash(state.board)
+        item_key = state.board.generate_map_key()
         if item_key in cls.node_cache:
             # key is exists in cache map, return old instance
             # print("key exists!")

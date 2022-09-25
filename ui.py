@@ -28,7 +28,7 @@ class UI:
         self.window_surface = None
         self.ui_conf = {
             "windows_size": (800, 480),
-            "caption": "ui caption",
+            "caption": "黑白棋对战",
 
         }
 
@@ -170,7 +170,7 @@ class UI:
             time.sleep(.05)
 
     def show_winner(self, player_color):
-        self.screen.fill(pygame.Color(0, 0, 0, 50))
+        # self.screen.fill(pygame.Color(0, 0, 0, 50))
         win_font = pygame.font.SysFont("Courier New", 34)
         restart_font = pygame.font.SysFont("Courier New", 34)
         restart_msg = "Game Over and will restart in 5s!"
@@ -180,8 +180,8 @@ class UI:
             show_msg = "Black player wins!"
         else:
             show_msg = "No Winner!"
-        w_msg = win_font.render(show_msg, True, self.WHITE)
-        r_msg = restart_font.render(restart_msg, True, self.WHITE)
+        w_msg = win_font.render(show_msg, True, (255, 0, 0))
+        r_msg = restart_font.render(restart_msg, True, (255, 0, 0))
         self.screen.blit(
             w_msg, w_msg.get_rect(centerx=self.screen.get_width() / 2, centery=120))
         self.screen.blit(

@@ -11,7 +11,6 @@
 import sys
 import time
 import math
-import traceback
 import argparse
 
 import pygame
@@ -41,7 +40,7 @@ class GameCenter:
         self.gm_is_running = True
         self.board.cur_player = config.BLACK
         self.battle_wait = 0.001
-        self.reverse_wait = 0
+        self.reverse_wait = 0.001
         self.args = args
 
     def start_loop(self, battle_wait=0.01):
@@ -72,7 +71,7 @@ class GameCenter:
                     self.board.switch_player()
                     self.ui.music.play()
             except StepIllegalError as e:
-                traceback.print_exc()
+                pass
                 # todo: 调试
 
             except GameExitError:
