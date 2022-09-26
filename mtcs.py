@@ -18,7 +18,7 @@ import config
 from board import Board
 
 CACHE_ON = 1
-MAX_VISIT_COUNT = 100
+MAX_VISIT_COUNT = 1000
 
 
 class Node:
@@ -250,7 +250,7 @@ def back_propagate(v, ts):
     """
     winner = ts.board.get_winner()
     # 价值500W的公式
-    delta = -1 if winner == v.state.board.cur_player else 1
+    delta = -1 if winner == v.state.board.cur_player else 0
 
     while v is not None:
         v.visit_cnt += 1

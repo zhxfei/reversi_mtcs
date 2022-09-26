@@ -26,8 +26,14 @@ CNT = 1000
 CP = 1 / math.sqrt(2)
 EXIT_CODE = 2
 restart_wait = 0.1
+no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
+MAX_COUNT = 100
+
 
 def random_vs_random():
+    from mtcs import Node
+    Node.init_cache_map()
+
     no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
     while cnt < CNT:
         cnt += 1
@@ -54,31 +60,38 @@ def random_vs_random():
             "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt))
 
 
-def random_vs_mtcs():
-    start_time = time.time()
-    no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
-    while cnt < CNT:
-        cnt += 1
-        board = Board(game_center=None)
-        player_black = RandomPlayer(board, game_center=None)
-        player_white = MCTSPlayer(board, game_center=None)
-        while not board.game_ended():
-            if len(board.next_valid_steps) == 0:
-                board.switch_player()
-            if board.cur_player == config.BLACK:
-                player_black.move()
-                board.switch_player()
-            else:
-                player_white.move()
-                board.switch_player()
-        if board.get_winner() == config.BLACK:
-            black_win_cnt += 1
-        elif board.get_winner() == config.WHITE:
-            white_win_cnt += 1
-        else:
-            no_winner_cnt += 1
-        print("{} {}, gets results: {} : {}, no winner cnt:{}, cost time:{}".format(
-            "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt, time.time() - start_time))
+#
+# def random_vs_mtcs():
+#     from mtcs import Node
+#     Node.init_cache_map()
+#
+#     args = prepare_args()
+#     gc = GameCenter(args)
+#
+#     start_time = time.time()
+#     no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
+#     while cnt < CNT:
+#         cnt += 1
+#         board = Board(game_center=gc)
+#         player_black = RandomPlayer(board, game_center=gc)
+#         player_white = MCTSPlayer(board, game_center=gc)
+#         while not board.game_ended():
+#             if len(board.next_valid_steps) == 0:
+#                 board.switch_player()
+#             if board.cur_player == config.BLACK:
+#                 player_black.move()
+#                 board.switch_player()
+#             else:
+#                 player_white.move()
+#                 board.switch_player()
+#         if board.get_winner() == config.BLACK:
+#             black_win_cnt += 1
+#         elif board.get_winner() == config.WHITE:
+#             white_win_cnt += 1
+#         else:
+#             no_winner_cnt += 1
+#         print("{} {}, gets results: {} : {}, no winner cnt:{}, cost time:{}".format(
+#             "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt, time.time() - start_time))
 
 
 def random_vs_greedy():
@@ -130,7 +143,7 @@ def prepare_args():
     return args
 
 
-class GameCenter:
+class TestGameCenter:
     def __init__(self, args):
         pygame.init()
         pygame.mixer.init()
@@ -154,11 +167,15 @@ class GameCenter:
 
         :return:
         """
-        from mtcs import Node
-        Node.init_cache_map()
-
+        # from mtcs import Node
+        # Node.init_cache_map()
+        global cnt, black_win_cnt, no_winner_cnt, white_win_cnt
+        cnt += 1
+        if cnt > MAX_COUNT: return
         ret = 0
         self.ui.show_MCTS_time(ret)
+        start_time = time.time()
+
         clock = pygame.time.Clock() if self.mode == "human_player" else None
         while self.gm_is_running and not self.board.game_ended():
             pygame.display.update()
@@ -171,17 +188,17 @@ class GameCenter:
                     self.ui.put_remind_piece(self.board.get_next_valid_step(self.board.cur_player))
                     self.player_black.move(clock)
                     self.board.switch_player()
-                    self.ui.music.play()
+                    # self.ui.music.play()
                 else:
                     ret = self.player_white.move()
                     self.board.switch_player()
-                    self.ui.music.play()
+                    # self.ui.music.play()
             except StepIllegalError as e:
                 traceback.print_exc()
                 # todo: 调试
 
             except GameExitError:
-                Node.save_cache_map()
+                # Node.save_cache_map()
                 print("save cache map success! game will exit")
                 sys.exit(EXIT_CODE)
 
@@ -193,11 +210,19 @@ class GameCenter:
         # game is not running...
         if self.board.game_ended():
             winner = self.board.get_winner()
-            self.ui.show_winner(winner)
+            # self.ui.show_winner(winner)
+            if winner == config.BLACK:
+                black_win_cnt += 1
+            elif winner == config.WHITE:
+                white_win_cnt += 1
+            else:
+                no_winner_cnt += 1
+            print("{} {}, gets results: {} : {}, no winner cnt:{}, cost time:{}".format(
+                "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt, time.time() - start_time))
 
         # restarting game
         print("game is over, and it will restart in 5 seconds...")
-        Node.save_cache_map()
+        # Node.save_cache_map()
         time.sleep(restart_wait)
         return self.restart_game(battle_wait)
 
@@ -213,7 +238,7 @@ class GameCenter:
 
 def random_vs_mtcs_with_ui_main():
     args = prepare_args()
-    gc = GameCenter(args)
+    gc = TestGameCenter(args)
     gc.start_loop()
 
 

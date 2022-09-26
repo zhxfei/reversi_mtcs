@@ -51,8 +51,9 @@ class GameCenter:
         from mtcs import Node
         Node.init_cache_map()
 
-        ret = 0
-        self.ui.show_MCTS_time(ret)
+        cost_time = 0
+        total_cost_time = 0
+        self.ui.show_MCTS_time(cost_time, total_cost_time)
         clock = pygame.time.Clock() if self.mode == "human_player" else None
         while self.gm_is_running and not self.board.game_ended():
             pygame.display.update()
@@ -67,7 +68,8 @@ class GameCenter:
                     self.board.switch_player()
                     self.ui.music.play()
                 else:
-                    ret = self.player_white.move()
+                    cost_time = self.player_white.move()
+                    total_cost_time += cost_time
                     self.board.switch_player()
                     self.ui.music.play()
             except StepIllegalError as e:
@@ -82,7 +84,7 @@ class GameCenter:
             # 更新黑白棋统计
             whites, blacks, _ = self.board.count_pieces()
             self.ui.update_score(whites, blacks)
-            self.ui.show_MCTS_time(ret)
+            self.ui.show_MCTS_time(cost_time, total_cost_time)
 
         # game is not running...
         if self.board.game_ended():

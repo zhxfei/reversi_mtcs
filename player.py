@@ -33,7 +33,7 @@ class Player(object):
         :param piece_color: 走棋方
         :return:
         """
-        if self.gc is not None:
+        if self.gc and self.gc.ui is not None:
             self.gc.ui.delete_put_remind_piece(self.board.get_next_valid_step(self.board.cur_player))
 
         # put piece, cur_player same as the piece's color
@@ -41,7 +41,7 @@ class Player(object):
         # revers pieces
         reversed_lst = self.board.reverse_pieces(step)
 
-        if self.gc is not None:
+        if self.gc and self.gc.ui is not None:
             # update ui
             self.gc.ui.put_piece(step, piece_color)
             pygame.display.update()
@@ -102,9 +102,9 @@ class MCTSPlayer(Player):
         piece_color = self.board.cur_player
         state = State(board=self.board)
         step = uct_search(state, self.gc.args.max_iterate, self.gc.args.constant_factor)
-        ret = round(time.time() - t, 2)
+        cost_time = round(time.time() - t, 2)
         self._move(step, piece_color)
-        return ret
+        return cost_time
 
 
 class GreedyPlayer(Player):
