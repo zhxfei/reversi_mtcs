@@ -19,6 +19,7 @@ import config
 from ui import UI, GameExitError
 from board import Board
 from player import HumanPlayer, StepIllegalError, MCTSPlayer
+from mcts import Node
 
 CP = 1 / math.sqrt(2)
 EXIT_CODE = 2
@@ -48,7 +49,7 @@ class GameCenter:
 
         :return:
         """
-        from mcts import Node
+
         Node.init_cache_map()
 
         cost_time = 0

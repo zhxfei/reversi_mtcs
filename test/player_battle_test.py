@@ -61,40 +61,6 @@ def random_vs_random():
             "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt, time.time() - start_time))
 
 
-#
-# def random_vs_mtcs():
-#     from mtcs import Node
-#     Node.init_cache_map()
-#
-#     args = prepare_args()
-#     gc = GameCenter(args)
-#
-#     start_time = time.time()
-#     no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
-#     while cnt < CNT:
-#         cnt += 1
-#         board = Board(game_center=gc)
-#         player_black = RandomPlayer(board, game_center=gc)
-#         player_white = MCTSPlayer(board, game_center=gc)
-#         while not board.game_ended():
-#             if len(board.next_valid_steps) == 0:
-#                 board.switch_player()
-#             if board.cur_player == config.BLACK:
-#                 player_black.move()
-#                 board.switch_player()
-#             else:
-#                 player_white.move()
-#                 board.switch_player()
-#         if board.get_winner() == config.BLACK:
-#             black_win_cnt += 1
-#         elif board.get_winner() == config.WHITE:
-#             white_win_cnt += 1
-#         else:
-#             no_winner_cnt += 1
-#         print("{} {}, gets results: {} : {}, no winner cnt:{}, cost time:{}".format(
-#             "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt, time.time() - start_time))
-
-
 def random_vs_greedy():
     start_time = time.time()
     no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
@@ -162,6 +128,7 @@ class TestGameCenter:
         self.battle_wait = 0.001
         self.reverse_wait = 0.001
         self.args = args
+        self.start_time = time.time()
 
     def start_loop(self, battle_wait=0.01):
         """
@@ -169,13 +136,13 @@ class TestGameCenter:
         :return:
         """
         Node.init_cache_map()
+
         global cnt, black_win_cnt, no_winner_cnt, white_win_cnt
         cnt += 1
         if cnt > MAX_COUNT: return
         cost_time = 0
         total_cost_time = 0
         self.ui.show_MCTS_time(cost_time, total_cost_time)
-        start_time = time.time()
 
         clock = pygame.time.Clock() if self.mode == "human_player" else None
         while self.gm_is_running and not self.board.game_ended():
@@ -221,7 +188,8 @@ class TestGameCenter:
             else:
                 no_winner_cnt += 1
             print("{} {}, gets results: {} : {}, no winner cnt:{}, cost time:{}".format(
-                "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt, time.time() - start_time))
+                "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt,
+                time.time() - self.start_time))
 
         # restarting game
         print("game is over, and it will restart in 5 seconds...")
@@ -246,7 +214,7 @@ def random_vs_mtcs_with_ui_main():
 
 
 if __name__ == '__main__':
-    random_vs_greedy()
-    # random_vs_mtcs_with_ui_main()
+    # random_vs_greedy()
+    random_vs_mtcs_with_ui_main()
 
     # random_vs_greedy()
