@@ -71,6 +71,7 @@ class GameCenter:
                 else:
                     cost_time = self.player_white.move()
                     total_cost_time += cost_time
+                    total_cost_time = round(total_cost_time, 2)
                     self.board.switch_player()
                     self.ui.music.play()
             except StepIllegalError as e:
