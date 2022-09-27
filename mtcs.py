@@ -249,8 +249,7 @@ def back_propagate(v, ts):
     :return:
     """
     winner = ts.board.get_winner()
-    # 价值500W的公式
-    delta = -1 if winner == v.state.board.cur_player else 0
+    delta = -1 if winner == v.state.board.cur_player else 1
 
     while v is not None:
         v.visit_cnt += 1

@@ -31,8 +31,8 @@ def traverse_tree(root, fn, u):
 def main():
     for _, node in node_map.items():
         key = hash(node)
-        file_pre = config.TEST_DIR + "/{}".format(key)
-        file_name = config.TEST_DIR + "/{}.gv".format(key)
+        file_pre = config.TEST_DIR + "/gv/{}".format(key)
+        file_name = config.TEST_DIR + "/gv/{}.gv".format(key)
 
         if os.path.exists(file_name):
             os.remove(file_name)
@@ -40,7 +40,7 @@ def main():
         if os.path.exists(file_pre):
             os.remove(file_pre)
 
-        u = graphviz.Digraph('unix', filename=file_name,
+        u = graphviz.Digraph('unix', filename=file_name, engine='fdp',
                              node_attr={'color': 'lightblue2', 'style': 'filled'})
         u.attr(size='6,6')
 

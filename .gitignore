@@ -4,3 +4,4 @@
 __pycache__/
 *.gv
 *.pdf
+test/gv

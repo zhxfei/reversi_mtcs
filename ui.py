@@ -61,7 +61,7 @@ class UI:
         self.delete_remind_img1 = pygame.image.load(os.path.join(
             config.IMAGES_DIR, "cover3.png")).convert()
         self.tip1 = pygame.image.load(os.path.join(
-            config.IMAGES_DIR, "record.jpg")).convert()
+            config.IMAGES_DIR, "record1.jpg")).convert()
         self.tip_img = pygame.image.load(os.path.join(config.IMAGES_DIR,
                                                       "remind.png")).convert()
         # self.clear_img = pygame.image.load(os.path.join(config.IMAGES_DIR,
@@ -195,7 +195,7 @@ class UI:
         white_text_rect = white_text.get_rect()
         black_text_rect.topleft = (600, 40)
         white_text_rect.topleft = (600, 80)
-        self.window_surface.blit(self.tip1, (565, 12))
+        self.window_surface.blit(self.tip1, (548, 12))
         self.window_surface.blit(black_text, black_text_rect)
         self.window_surface.blit(white_text, white_text_rect)
 
@@ -213,15 +213,23 @@ class UI:
         # print("update score {} {}".format(white, black))
         self.show_score(white, black)
 
-    def show_MCTS_time(self, ret_time):
+    def show_MCTS_time(self, ret_time,total_time):
         mcts_time = ret_time
         time_text = self.score_font.render("".format(mcts_time), True, pygame.Color("#B7B7B7"))
         time_text_rect = time_text.get_rect()
         time_text_rect.topleft = (605, 180)
-        self.window_surface.blit(self.tip1, (565, 150))
+        self.window_surface.blit(self.tip1, (548, 150))
         time_text = self.score_font.render("time: {}s".format(mcts_time), True, (0, 0, 0))
         time_text_rect = time_text.get_rect()
         time_text_rect.topleft = (605, 180)
         self.window_surface.blit(time_text, time_text_rect)
+
+        totaltime_text = self.score_font.render("".format(total_time), True, pygame.Color("#B7B7B7"))
+        totaltime_text_rect = totaltime_text.get_rect()
+        totaltime_text_rect.topleft = (580, 230)
+        totaltime_text = self.score_font.render("totaltime: {}s".format(total_time), True, (0, 0, 0))
+        totaltime_text_rect = totaltime_text.get_rect()
+        totaltime_text_rect.topleft = (580, 230)
+        self.window_surface.blit(totaltime_text, totaltime_text_rect)
         #print(mcts_time)
         #print("a")

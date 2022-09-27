@@ -21,19 +21,20 @@ import config
 from ui import UI, GameExitError
 from board import Board
 from player import RandomPlayer, StepIllegalError, MCTSPlayer, GreedyPlayer
+from mtcs import Node
 
 CNT = 1000
 CP = 1 / math.sqrt(2)
 EXIT_CODE = 2
 restart_wait = 0.1
 no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
-MAX_COUNT = 100
+MAX_COUNT = 1000
 
 
 def random_vs_random():
     from mtcs import Node
     Node.init_cache_map()
-
+    start_time = time.time()
     no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
     while cnt < CNT:
         cnt += 1
@@ -56,8 +57,8 @@ def random_vs_random():
         else:
             no_winner_cnt += 1
 
-        print("{} {}, gets results: {} : {}, no winner cnt:{}".format(
-            "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt))
+        print("{} {}, gets results: {} : {}, no winner cnt:{}, cost time:{}".format(
+            "black vs white total", cnt, black_win_cnt, white_win_cnt, no_winner_cnt, time.time() - start_time))
 
 
 #
@@ -95,9 +96,9 @@ def random_vs_random():
 
 
 def random_vs_greedy():
+    start_time = time.time()
     no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0
     while cnt < CNT:
-        start_time = time.time()
         cnt += 1
         board = Board(game_center=None)
         player_black = RandomPlayer(board, game_center=None)
@@ -167,13 +168,13 @@ class TestGameCenter:
 
         :return:
         """
-        # from mtcs import Node
-        # Node.init_cache_map()
+        Node.init_cache_map()
         global cnt, black_win_cnt, no_winner_cnt, white_win_cnt
         cnt += 1
         if cnt > MAX_COUNT: return
-        ret = 0
-        self.ui.show_MCTS_time(ret)
+        cost_time = 0
+        total_cost_time = 0
+        self.ui.show_MCTS_time(cost_time, total_cost_time)
         start_time = time.time()
 
         clock = pygame.time.Clock() if self.mode == "human_player" else None
@@ -190,7 +191,9 @@ class TestGameCenter:
                     self.board.switch_player()
                     # self.ui.music.play()
                 else:
-                    ret = self.player_white.move()
+                    cost_time = self.player_white.move()
+                    total_cost_time += cost_time
+                    total_cost_time = round(total_cost_time, 2)
                     self.board.switch_player()
                     # self.ui.music.play()
             except StepIllegalError as e:
@@ -205,7 +208,7 @@ class TestGameCenter:
             # 更新黑白棋统计
             whites, blacks, _ = self.board.count_pieces()
             self.ui.update_score(whites, blacks)
-            self.ui.show_MCTS_time(ret)
+            self.ui.show_MCTS_time(cost_time, total_cost_time)
 
         # game is not running...
         if self.board.game_ended():
@@ -222,7 +225,7 @@ class TestGameCenter:
 
         # restarting game
         print("game is over, and it will restart in 5 seconds...")
-        # Node.save_cache_map()
+        Node.save_cache_map()
         time.sleep(restart_wait)
         return self.restart_game(battle_wait)
 
@@ -243,7 +246,7 @@ def random_vs_mtcs_with_ui_main():
 
 
 if __name__ == '__main__':
-    # random_vs_random()
-    random_vs_mtcs_with_ui_main()
+    random_vs_greedy()
+    # random_vs_mtcs_with_ui_main()
 
     # random_vs_greedy()
