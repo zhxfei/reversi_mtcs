@@ -21,7 +21,7 @@ import config
 from ui import UI, GameExitError
 from board import Board
 from player import RandomPlayer, StepIllegalError, MCTSPlayer, GreedyPlayer
-from mtcs import Node
+from mcts import Node
 
 CNT = 1000
 CP = 1 / math.sqrt(2)
@@ -32,7 +32,7 @@ MAX_COUNT = 1000
 
 
 def random_vs_random():
-    from mtcs import Node
+    from mcts import Node
     Node.init_cache_map()
     start_time = time.time()
     no_winner_cnt, black_win_cnt, white_win_cnt, cnt = 0, 0, 0, 0

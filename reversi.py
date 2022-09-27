@@ -48,7 +48,7 @@ class GameCenter:
 
         :return:
         """
-        from mtcs import Node
+        from mcts import Node
         Node.init_cache_map()
 
         cost_time = 0

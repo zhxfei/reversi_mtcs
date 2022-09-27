@@ -8,7 +8,7 @@
    Description :
 
 """
-from mtcs import Node, State
+from mcts import Node, State
 from board import Board
 
 b1 = Board()

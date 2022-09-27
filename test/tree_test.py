@@ -11,7 +11,7 @@
 import graphviz
 import os
 import config
-from mtcs import Node
+from mcts import Node
 
 node_map = Node.loads(config.CACHE_FILE_PATH)
 

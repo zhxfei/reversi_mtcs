@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 
-   File Name   :   mtcs.py
+   File Name   :   mcts.py
    author      :   zhuxiaofei22@mails.ucas.ac.cn
    Date：      :   2022-09-21
    Description :

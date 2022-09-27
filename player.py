@@ -13,7 +13,7 @@ import random
 import pygame
 
 from board import Board
-from mtcs import uct_search, State
+from mcts import uct_search, State
 
 
 class StepIllegalError(Exception):
